@@ -1,5 +1,3 @@
 if ARCH_NSPIRE
 
-select MACH_NSPIRE
-
 endif

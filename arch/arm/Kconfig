@@ -497,9 +497,14 @@ config ARCH_NETX
 	help
 	  This enables support for systems based on the Hilscher NetX Soc
 
-config ARCH_NSPIRE
+config MACH_NSPIRE
 	bool "TI-NSPIRE based"
 	select CPU_ARM926T
+	select GENERIC_CLOCKEVENTS
+	select ARM_VIC
+	select ARM_TIMER_SP804
+	select COMMON_CLK
+	select CLKDEV_LOOKUP
 	help
 	  This enables support for systems using the TI-NSPIRE CPU
 
