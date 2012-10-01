@@ -1,0 +1,1 @@
+#define NSPIRE_TIMER2_VIRT_BASE

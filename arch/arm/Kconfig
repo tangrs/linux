@@ -497,6 +497,12 @@ config ARCH_NETX
 	help
 	  This enables support for systems based on the Hilscher NetX Soc
 
+config ARCH_NSPIRE
+	bool "TI-NSPIRE based"
+	select CPU_ARM926T
+	help
+	  This enables support for systems using the TI-NSPIRE CPU
+
 config ARCH_H720X
 	bool "Hynix HMS720x-based"
 	select CPU_ARM720T
@@ -1075,6 +1081,8 @@ source "arch/arm/mach-netx/Kconfig"
 
 source "arch/arm/mach-nomadik/Kconfig"
 source "arch/arm/plat-nomadik/Kconfig"
+
+source "arch/arm/mach-nspire/Kconfig"
 
 source "arch/arm/plat-omap/Kconfig"
 
