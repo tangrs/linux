@@ -503,8 +503,9 @@ config MACH_NSPIRE
 	select GENERIC_CLOCKEVENTS
 	select ARM_VIC
 	select ARM_TIMER_SP804
-	select COMMON_CLK
+	select HAVE_MACH_CLKDEV
 	select CLKDEV_LOOKUP
+	select ARM_AMBA
 	help
 	  This enables support for systems using the TI-NSPIRE CPU
 

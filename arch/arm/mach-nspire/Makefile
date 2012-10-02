@@ -1,1 +1,1 @@
-obj-y			:= nspire.o
+obj-y			:= nspire.o clock.o

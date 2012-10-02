@@ -1,7 +1,7 @@
 #ifndef NSPIRE_IRQS_H
 #define NSPIRE_IRQS_H
 
-#define NSPIRE_IRQ_MASK         (1<<19) //0x006FEB9A
+#define NSPIRE_IRQ_MASK         ((1<<19)|(1<<1)) /*0x006FEB9A*/
 
 enum {
     NSPIRE_IRQ_UART = 1,
