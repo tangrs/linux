@@ -1,19 +1,31 @@
+/*
+ *  linux/arch/arm/mach-nspire/nspire.c
+ *
+ *  Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2, as
+ * published by the Free Software Foundation.
+ *
+ */
+
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/clkdev.h>
-#include <mach/nspire-regs.h>
-#include <asm/mach/map.h>
-#include <asm/mach-types.h>
-#include <asm/mach/arch.h>
-#include <mach/irqs.h>
-#include <mach/clkdev.h>
-#include <asm/mach/time.h>
-#include <asm/hardware/timer-sp.h>
-#include <asm/hardware/vic.h>
 #include <linux/interrupt.h>
 #include <linux/ioport.h>
 #include <linux/platform_device.h>
 
+#include <mach/nspire_mmio.h>
+#include <mach/irqs.h>
+#include <mach/clkdev.h>
+
+#include <asm/mach/time.h>
+#include <asm/hardware/timer-sp.h>
+#include <asm/hardware/vic.h>
+#include <asm/mach/map.h>
+#include <asm/mach-types.h>
+#include <asm/mach/arch.h>
 
 
 /**************** MAPIO ****************/
@@ -44,6 +56,8 @@ void __init nspire_init_irq(void)
 }
 
 /**************** UART **************/
+/* Non functional at the moment
+ * Relying on earlycon0 for console messages */
 
 static struct resource uart_resources[] = {
     {
@@ -63,16 +77,6 @@ static struct platform_device uart = {
     .num_resources = ARRAY_SIZE(uart_resources),
     .resource = uart_resources
 };
-
-
-/*
-static struct irqaction nspire_timer_irq = {
-	.name		= "nspire second timer",
-	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
-	.handler	= nspire_timer_interrupt,
-};
-*/
-
 
 /**************** TIMER ****************/
 static struct clk sp804_clk = {

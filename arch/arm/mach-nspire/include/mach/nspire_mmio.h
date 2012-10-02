@@ -1,12 +1,16 @@
-// //(NSPIRE_VIC_VIRT_BASE - NSPIRE_UART_SIZE)
-//
-// #define NSPIRE_TIMER2_PHYS_BASE    0x900D0000
-// #define NSPIRE_TIMER2_SIZE         0x10000
-// #define NSPIRE_TIMER2_VIRT_BASE (NSPIRE_UART_VIRT_BASE - NSPIRE_TIMER2_SIZE)
-//
-// #define NSPIRE_POWER_PHYS_BASE     0x900B0000
-// #define NSPIRE_POWER_SIZE         0x10000
-// #define NSPIRE_POWER_VIRT_BASE (NSPIRE_TIMER2_VIRT_BASE - NSPIRE_POWER_SIZE)
+/*
+ *  linux/arch/arm/mach-nspire/include/mach/nspire_mmio.h
+ *
+ *  Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2, as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#ifndef NSPIRE_MMIO_H
+#define NSPIRE_MMIO_H
 
 #include <asm-generic/sizes.h>
 
@@ -32,3 +36,5 @@
 #define NSPIRE_APB_TIMER2           0xD0000
 #define NSPIRE_APB_POWER            0xB0000
 #define NSPIRE_APB_UART             0x20000
+
+#endif

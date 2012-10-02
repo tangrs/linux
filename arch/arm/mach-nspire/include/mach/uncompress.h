@@ -1,4 +1,18 @@
-#include <mach/nspire-regs.h>
+/*
+ *  linux/arch/arm/mach-nspire/include/mach/uncompress.h
+ *
+ *  Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2, as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#ifndef NSPIRE_UNCOMPRESS_H
+#define NSPIRE_UNCOMPRESS_H
+
+#include <mach/nspire_mmio.h>
 
 static inline void __attribute__((naked)) putc(int c) {
     asm volatile ("mov r1, #0x90000000\n"
@@ -9,5 +23,8 @@ static inline void __attribute__((naked)) putc(int c) {
     "bne 1b\n"
     "bx lr");
 }
+
 #define arch_decomp_setup()
 #define flush()
+
+#endif
