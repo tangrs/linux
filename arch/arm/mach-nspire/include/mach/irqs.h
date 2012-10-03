@@ -16,7 +16,8 @@
 
 enum {
     NSPIRE_IRQ_UART = 1,
-    NSPIRE_IRQ_TIMER2 = 19
+    NSPIRE_IRQ_TIMER2 = 19,
+    NSPIRE_IRQ_LCD = 21
 };
 
 #define NR_IRQS 64

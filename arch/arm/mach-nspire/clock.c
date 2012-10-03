@@ -21,3 +21,8 @@ int clk_enable(struct clk *clk) {
 unsigned long clk_get_rate(struct clk *clk) {
     return clk->rate;
 }
+
+int clk_set_rate(struct clk *clk, unsigned long rate) {
+    clk->rate = rate;
+    return 0;
+}
