@@ -228,12 +228,9 @@ void __init nspire_init(void)
     platform_device_register(&keypad_device);
 }
 
-void __init nspire_restart(char mode, const char *cmd)
+void nspire_restart(char mode, const char *cmd)
 {
-    printk(KERN_INFO "Reset called\n");
-	while (1) {
-	    writel(2, NSPIRE_APB_VIRTIO(NSPIRE_APB_MISC + 0x8));
-	}
+	writel(2, NSPIRE_APB_VIRT(NSPIRE_APB_MISC + 0x8));
 }
 
 void __init nspire_init_late(void)
