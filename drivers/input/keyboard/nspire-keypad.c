@@ -28,7 +28,7 @@ struct nspire_keypad {
 	struct input_dev *input;
 	unsigned short keymap[8];
 	const struct nspire_keypad_data *pdata;
-	spinlock_t nspire_keypad_lock;
+	spinlock_t lock;
 };
 
 static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
@@ -59,6 +59,8 @@ static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
 
 static int nspire_keypad_chip_init(struct nspire_keypad *keypad) {
     unsigned long val;
+
+    spin_lock(&keypad->lock);
     memcpy_fromio(keypad->keymap, keypad->reg_base + 0x10, sizeof(keypad->keymap));
 
     /* We can assume the bootloader (i.e. TI-NSPIRE software) has already initialized this */
@@ -70,6 +72,8 @@ static int nspire_keypad_chip_init(struct nspire_keypad *keypad) {
 
     /* Enable interrupts */
     writel((1<<1), keypad->reg_base + 0xc);
+    spin_unlock(&keypad->lock);
+
     return 0;
 }
 
@@ -111,7 +115,7 @@ static int __init nspire_keypad_probe(struct platform_device *pdev)
 	keypad->irq = irq;
 	keypad->pdata = plat;
 	keypad->input = input;
-	spin_lock_init(&keypad->nspire_keypad_lock);
+	spin_lock_init(&keypad->lock);
 
 	if (!request_mem_region(res->start, resource_size(res), pdev->name)) {
 		dev_err(&pdev->dev, "failed to request I/O memory\n");
@@ -133,8 +137,6 @@ static int __init nspire_keypad_probe(struct platform_device *pdev)
 	for (i = 1; i < 128; i++)
 		set_bit(i, input->keybit);
 	clear_bit(0, input->keybit);
-
-	//input_set_capability(input, EV_MSC, MSC_SCAN);
 
 	error = request_irq(keypad->irq, nspire_keypad_irq, 0, "nspire_keypad", keypad);
 	if (error) {
