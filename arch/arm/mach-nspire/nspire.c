@@ -18,6 +18,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
+#include <linux/input.h>
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -29,6 +30,8 @@
 #include <asm/mach/map.h>
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
+
+#include <mach/keypad.h>
 
 
 /**************** MAPIO ****************/
@@ -43,12 +46,7 @@ static struct map_desc nspire_io_regs[] __initdata = {
 		.pfn		= __phys_to_pfn(NSPIRE_VIC_PHYS_BASE),
 		.length		= NSPIRE_VIC_SIZE,
 		.type		= MT_DEVICE,
-	}, /*{
-		.virtual	= NSPIRE_LCD_VIRT_BASE,
-		.pfn		= __phys_to_pfn(NSPIRE_LCD_PHYS_BASE),
-		.length		= NSPIRE_LCD_SIZE,
-		.type		= MT_DEVICE,
-	}*/
+	},
 };
 
 void __init nspire_map_io(void)
@@ -179,6 +177,44 @@ static struct clcd_board nspire_clcd_data = {
 static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE, { NSPIRE_IRQ_LCD }, &nspire_clcd_data);
 
 
+/************** Keypad *************/
+static unsigned int nspire_cx_evtcode_map[][11] = {
+    { KEY_ENTER, KEY_ENTER, 0, 0, KEY_SPACE, KEY_Z, KEY_Y, KEY_0, KEY_QUESTION, 0, 0 },
+    { KEY_X, KEY_W, KEY_V, KEY_3, KEY_U, KEY_T, KEY_S, KEY_1, 0, 0, 0 },
+    { KEY_R, KEY_Q, KEY_P, KEY_6, KEY_O, KEY_N, KEY_M, KEY_4, 0, 0, 0 },
+    { KEY_L, KEY_K, KEY_J, KEY_9, KEY_I, KEY_H, KEY_G, KEY_7, KEY_SLASH, 0, 0 },
+    { KEY_F, KEY_E, KEY_D, 0, KEY_C, KEY_B, KEY_A, KEY_EQUAL, KEY_KPASTERISK, KEY_KP6, 0},
+    { 0, 0, KEY_MINUS, KEY_RIGHTBRACE, KEY_DOT, KEY_LEFTBRACE, KEY_5, 0, 0, KEY_BACKSPACE, 0 },
+    { 0, 0, KEY_KPPLUS, 0, KEY_2, 0, KEY_8, KEY_ESC, 0, KEY_TAB, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, KEY_LEFTSHIFT, KEY_LEFTCTRL, KEY_COMMA }
+};
+
+static struct resource keypad_resources[] = {
+	{
+		.start	= NSPIRE_APB_PHYS(NSPIRE_APB_KEYPAD),
+		.end	= NSPIRE_APB_PHYS(NSPIRE_APB_KEYPAD + SZ_4K),
+		.flags	= IORESOURCE_MEM,
+	},{
+		.start	= NSPIRE_IRQ_KEYPAD,
+		.end	= NSPIRE_IRQ_KEYPAD,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+static struct nspire_keypad_data keypad_data = {
+    .evtcodes = nspire_cx_evtcode_map
+};
+
+static struct platform_device keypad_device = {
+	.name		= "nspire-keypad",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(keypad_resources),
+	.resource	= keypad_resources,
+	.dev = {
+		.platform_data = &keypad_data
+	}
+};
+
 /************** INIT ***************/
 
 void __init nspire_init_early(void){
@@ -189,12 +225,14 @@ void __init nspire_init(void)
 {
     amba_device_register(&fb_device, &iomem_resource);
     amba_device_register(&uart_device, &iomem_resource);
+    platform_device_register(&keypad_device);
 }
 
 void __init nspire_restart(char mode, const char *cmd)
 {
+    printk(KERN_INFO "Reset called\n");
 	while (1) {
-	    writel(2, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x8));
+	    writel(2, NSPIRE_APB_VIRTIO(NSPIRE_APB_MISC + 0x8));
 	}
 }
 
