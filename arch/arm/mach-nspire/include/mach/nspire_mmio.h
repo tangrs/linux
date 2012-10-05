@@ -38,6 +38,8 @@
 #define NSPIRE_LCD_SIZE             SZ_4K
 #define NSPIRE_LCD_VIRT_BASE        0xFEDFE000
 
+#define NSPIRE_HOSTUSB_PHYS_BASE    0xB4000000
+
 #define NSPIRE_APB_TIMER2           0xD0000
 #define NSPIRE_APB_MISC             0xA0000
 #define NSPIRE_APB_POWER            0xB0000

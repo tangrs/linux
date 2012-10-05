@@ -215,6 +215,28 @@ static struct platform_device keypad_device = {
 	}
 };
 
+/************** USB HOST *************/
+
+
+static struct resource hostusb_resources[] = {
+	{
+		.start	= NSPIRE_HOSTUSB_PHYS_BASE,
+		.end	= NSPIRE_HOSTUSB_PHYS_BASE + SZ_4K,
+		.flags	= IORESOURCE_MEM,
+	},{
+		.start	= NSPIRE_IRQ_HOSTUSB,
+		.end	= NSPIRE_IRQ_HOSTUSB,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+static struct platform_device hostusb_device = {
+	.name		= "ehci_hcd",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(hostusb_resources),
+	.resource	= hostusb_resources,
+};
+
 /************** INIT ***************/
 
 void __init nspire_init_early(void){
@@ -226,6 +248,7 @@ void __init nspire_init(void)
     amba_device_register(&fb_device, &iomem_resource);
     amba_device_register(&uart_device, &iomem_resource);
     platform_device_register(&keypad_device);
+    platform_device_register(&hostusb_device);
 }
 
 void nspire_restart(char mode, const char *cmd)

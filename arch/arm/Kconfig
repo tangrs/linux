@@ -473,6 +473,7 @@ config MACH_NSPIRE
 	select HAVE_MACH_CLKDEV
 	select CLKDEV_LOOKUP
 	select ARM_AMBA
+	select USB_ARCH_HAS_EHCI
 	help
 	  This enables support for systems using the TI-NSPIRE CPU
 
