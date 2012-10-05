@@ -70,6 +70,11 @@ static int nspire_keypad_chip_init(struct nspire_keypad *keypad) {
 
     /* Enable interrupts */
     writel((1<<1), keypad->reg_base + 0xc);
+
+    /* Disable GPIO interrupts to prevent hanging on touchpad */
+    /* Possibly used to detect touchpad events */
+    writel(0, keypad->reg_base + 0x40);
+
     spin_unlock(&keypad->lock);
 
     return 0;
