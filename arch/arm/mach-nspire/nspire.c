@@ -259,7 +259,7 @@ void __init nspire_init(void)
 
 void nspire_restart(char mode, const char *cmd)
 {
-	writel(2, NSPIRE_APB_VIRT(NSPIRE_APB_MISC + 0x8));
+	writel(2, NSPIRE_APB_VIRTIO(NSPIRE_APB_MISC + 0x8));
 }
 
 void __init nspire_init_late(void)
