@@ -48,5 +48,6 @@
 #define NSPIRE_APB_POWER            0xB0000
 #define NSPIRE_APB_UART             0x20000
 #define NSPIRE_APB_KEYPAD           0xE0000
+#define NSPIRE_APB_CONTRAST         0xF0000
 
 #endif

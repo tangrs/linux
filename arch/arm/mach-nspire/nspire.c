@@ -34,6 +34,7 @@
 #include <mach/keypad.h>
 
 #include "boot1.h"
+#include "contrast.h"
 
 /**************** MAPIO ****************/
 static struct map_desc nspire_io_regs[] __initdata = {
@@ -265,6 +266,7 @@ void nspire_restart(char mode, const char *cmd)
 void __init nspire_init_late(void)
 {
     boot1_procfs_init();
+    contrast_procfs_init();
 }
 
 MACHINE_START(NSPIRE, "TI-NSPIRE CX Calculator")
