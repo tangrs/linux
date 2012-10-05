@@ -1,13 +1,11 @@
 /*
- * Copyright (C) ST-Ericsson SA 2010
+ * Copyright (C) 2012 Daniel Tang
  *
- * Author: Naveen Kumar G <naveen.gaddipati@stericsson.com> for ST-Ericsson
- * Author: Sundar Iyer <sundar.iyer@stericsson.com> for ST-Ericsson
+ * Author: Daniel Tang
  *
  * License terms:GNU General Public License (GPL) version 2
  *
- * Keypad controller driver for the nspire (Scroll Key Encoder) module used in
- * the Nomadik 8815 and Ux500 platforms.
+ * Nspire keypad controller driver
  */
 
 #include <linux/platform_device.h>
