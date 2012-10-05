@@ -18,7 +18,7 @@
     Memory map:
     0xfee00000 - 0xff000000         0x90000000 - 0x90200000     (APB)
     0xfedff000 - 0xfee00000         0xdc000000 - 0xdc001000     (Interrupt Controller)
-    0xFEDFE000 - 0xfedff000         0xc0000000 - 0xc0001000     (LCD Controller)
+    0xfed7f000 - 0xfedff000         0x00000000 - 0x00080000     (Boot1 ROM)
 
 */
 #define NSPIRE_APB_PHYS_BASE        0x90000000
@@ -35,10 +35,13 @@
 #define NSPIRE_VIC_VIRT_BASE        0xfedff000
 
 #define NSPIRE_LCD_PHYS_BASE        0xC0000000
-#define NSPIRE_LCD_SIZE             SZ_4K
-#define NSPIRE_LCD_VIRT_BASE        0xFEDFE000
 
 #define NSPIRE_HOSTUSB_PHYS_BASE    0xB4000000
+#define NSPIRE_HOSTUSB_SIZE         SZ_4K
+
+#define NSPIRE_BOOT1_PHYS_BASE      0x00000000
+#define NSPIRE_BOOT1_SIZE           0x00080000
+#define NSPIRE_BOOT1_VIRT_BASE      0xfed7f000
 
 #define NSPIRE_APB_TIMER2           0xD0000
 #define NSPIRE_APB_MISC             0xA0000

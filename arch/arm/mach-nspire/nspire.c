@@ -33,6 +33,7 @@
 
 #include <mach/keypad.h>
 
+#include "boot1.h"
 
 /**************** MAPIO ****************/
 static struct map_desc nspire_io_regs[] __initdata = {
@@ -45,6 +46,11 @@ static struct map_desc nspire_io_regs[] __initdata = {
 		.virtual	= NSPIRE_VIC_VIRT_BASE,
 		.pfn		= __phys_to_pfn(NSPIRE_VIC_PHYS_BASE),
 		.length		= NSPIRE_VIC_SIZE,
+		.type		= MT_DEVICE,
+	},{
+		.virtual	= NSPIRE_BOOT1_VIRT_BASE,
+		.pfn		= __phys_to_pfn(NSPIRE_BOOT1_PHYS_BASE),
+		.length		= NSPIRE_BOOT1_SIZE,
 		.type		= MT_DEVICE,
 	},
 };
@@ -221,7 +227,7 @@ static struct platform_device keypad_device = {
 static struct resource hostusb_resources[] = {
 	{
 		.start	= NSPIRE_HOSTUSB_PHYS_BASE,
-		.end	= NSPIRE_HOSTUSB_PHYS_BASE + SZ_4K,
+		.end	= NSPIRE_HOSTUSB_PHYS_BASE + NSPIRE_HOSTUSB_SIZE,
 		.flags	= IORESOURCE_MEM,
 	},{
 		.start	= NSPIRE_IRQ_HOSTUSB,
@@ -258,6 +264,7 @@ void nspire_restart(char mode, const char *cmd)
 
 void __init nspire_init_late(void)
 {
+    boot1_procfs_init();
 }
 
 MACHINE_START(NSPIRE, "TI-NSPIRE CX Calculator")
