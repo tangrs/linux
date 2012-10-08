@@ -74,6 +74,8 @@ static int nspire_keypad_chip_init(struct nspire_keypad *keypad) {
     /* Disable GPIO interrupts to prevent hanging on touchpad */
     /* Possibly used to detect touchpad events */
     writel(0, keypad->reg_base + 0x40);
+    /* Acknowledge existing interrupts */
+    writel(~0, keypad->reg_base + 0x44);
 
     spin_unlock(&keypad->lock);
 
@@ -141,16 +143,16 @@ static int __init nspire_keypad_probe(struct platform_device *pdev)
 		set_bit(i, input->keybit);
 	clear_bit(0, input->keybit);
 
+	error = nspire_keypad_chip_init(keypad);
+	if (error) {
+		dev_err(&pdev->dev, "unable to init keypad hardware\n");
+		goto err_iounmap;
+	}
+
 	error = request_irq(keypad->irq, nspire_keypad_irq, 0, "nspire_keypad", keypad);
 	if (error) {
 		dev_err(&pdev->dev, "allocate irq %d failed\n", keypad->irq);
 		goto err_iounmap;
-	}
-
-	error = nspire_keypad_chip_init(keypad);
-	if (error) {
-		dev_err(&pdev->dev, "unable to init keypad hardware\n");
-		goto err_free_irq;
 	}
 
 	error = input_register_device(input);
