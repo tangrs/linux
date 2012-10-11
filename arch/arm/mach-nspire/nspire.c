@@ -19,6 +19,7 @@
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
 #include <linux/input.h>
+#include <linux/usb/ehci_pdriver.h>
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -224,6 +225,10 @@ static struct platform_device keypad_device = {
 
 /************** USB HOST *************/
 
+static struct usb_ehci_pdata hostusb_pdata = {
+    .caps_offset = 0x100,
+    .port_power_on = 1
+};
 
 static struct resource hostusb_resources[] = {
 	{
@@ -238,11 +243,96 @@ static struct resource hostusb_resources[] = {
 };
 
 static struct platform_device hostusb_device = {
-	.name		= "ehci_hcd",
+	.name		= "ehci-platform",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(hostusb_resources),
 	.resource	= hostusb_resources,
+	.dev = {
+	    .platform_data = &hostusb_pdata,
+	    .coherent_dma_mask = ~0
+	}
 };
+
+static int nspire_usb_init(void) {
+    int err = 0, timeout;
+    unsigned usbcmd, usbmode, usbint, otgsc;
+    void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+
+    if (!hostusb_addr) {
+        printk(KERN_WARNING "Could not allocate enough memory to initialize NSPIRE host USB\n");
+        err = -ENOMEM;
+        goto out;
+    }
+
+    printk(KERN_INFO "Halting USB controller\n");
+    usbcmd  = readl(hostusb_addr + 0x140);
+    usbcmd &= ~(1<<0); /* Stop controller */
+    writel(usbcmd, hostusb_addr + 0x140);
+
+    // printk(KERN_INFO "Waiting for USB controller to finish halting\n");
+//     /* Wait for halt to complete */
+//     timeout = 100000;
+//     while (!(((usbcmd = readl(hostusb_addr + 0x144)) & (1<<12))) && timeout-- );
+//     if (timeout <= 0) {
+//         printk(KERN_INFO "USB controller halt timed out\n");
+//         err = -1;
+//         goto out_unmap;
+//     }
+
+    printk(KERN_INFO "Reseting USB controller\n");
+    usbcmd  =  readl(hostusb_addr + 0x140);
+    usbcmd |=  (1<<1); /* Reset controller */
+    writel(usbcmd, hostusb_addr + 0x140);
+
+    printk(KERN_INFO "Waiting for USB controller to finish reseting\n");
+    /* Wait for reset to complete */
+    timeout = 10000;
+    while ( ((usbcmd = readl(hostusb_addr + 0x140)) & (1<<1)) && timeout-- );
+    if (timeout <= 0) {
+        printk(KERN_INFO "USB controller reset timed out\n");
+        err = -1;
+        goto out_unmap;
+    }
+
+    /* Set to host controller mode */
+    printk(KERN_INFO "Setting controller to host controller mode\n");
+    usbmode  = readl(hostusb_addr + 0x1a8);
+    usbmode |= 0b11;
+    writel(usbmode, hostusb_addr + 0x1a8);
+
+//
+//     printk(KERN_INFO "Disable non-EHCI interrupts on USB controller\n");
+//     usbint  =  readl(hostusb_addr + 0x148);
+//     printk(KERN_INFO "usbint before: %#x\n", usbint);
+//     usbint = 0;
+//     writel(usbint, hostusb_addr + 0x148);
+//     usbint  =  readl(hostusb_addr + 0x148);
+//     printk(KERN_INFO "usbint after: %#x\n", usbint);
+//
+//     printk(KERN_INFO "Clear non-EHCI interrupts on USB controller\n");
+//     usbint  =  readl(hostusb_addr + 0x144);
+//     printk(KERN_INFO "usbsts before: %#x\n", usbint);
+//     usbint = (1<<7);
+//     writel(usbint, hostusb_addr + 0x144);
+//     usbint  =  readl(hostusb_addr + 0x144);
+//     printk(KERN_INFO "usbsts after: %#x\n", usbint);
+
+    /* Disable OTG interrupts */
+    printk(KERN_INFO "Disable OTG interrupts\n");
+    otgsc  = readl(hostusb_addr + 0x1a4);
+    printk(KERN_INFO "otgsc before: %#x\n", otgsc);
+    otgsc &= ~(0x3F<<25);
+    writel(otgsc, hostusb_addr + 0x1a4);
+
+    printk(KERN_INFO "Adding USB controller as platform device\n");
+    err = platform_device_register(&hostusb_device);
+
+    out_unmap:
+    iounmap(hostusb_addr);
+    out:
+
+    return err;
+}
 
 /************** INIT ***************/
 
@@ -255,7 +345,7 @@ void __init nspire_init(void)
     amba_device_register(&fb_device, &iomem_resource);
     amba_device_register(&uart_device, &iomem_resource);
     platform_device_register(&keypad_device);
-    platform_device_register(&hostusb_device);
+    nspire_usb_init();
 }
 
 void nspire_restart(char mode, const char *cmd)

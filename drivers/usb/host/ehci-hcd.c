@@ -649,6 +649,7 @@ static int ehci_run (struct usb_hcd *hcd)
 
 	ehci_writel(ehci, INTR_MASK,
 		    &ehci->regs->intr_enable); /* Turn On Interrupts */
+	printk( KERN_INFO "USBINT = %#x\n", ehci_readl(ehci, &ehci->regs->intr_enable));
 
 	/* GRR this is run-once init(), being done every time the HC starts.
 	 * So long as they're part of class devices, we can't do it init()
@@ -718,6 +719,11 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 
 	/* Shared IRQ? */
 	if (!masked_status || unlikely(ehci->rh_state == EHCI_RH_HALTED)) {
+	    static int already_printed = 0;
+	    if (!already_printed) {
+	        printk(KERN_WARNING "\nEHCI ditched irq. status = %#x, mask = %#x, intr_enable = %#x\n", status, (INTR_MASK | STS_FLR), ehci_readl(ehci, &ehci->regs->intr_enable));
+	        already_printed = 1;
+	    }
 		spin_unlock(&ehci->lock);
 		return IRQ_NONE;
 	}
