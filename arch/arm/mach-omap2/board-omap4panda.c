@@ -171,7 +171,7 @@ static void __init omap4_ehci_init(void)
 		return;
 	}
 	clk_set_rate(phy_ref_clk, 19200000);
-	clk_enable(phy_ref_clk);
+	clk_prepare_enable(phy_ref_clk);
 
 	/* disable the power to the usb hub prior to init and reset phy+hub */
 	ret = gpio_request_array(panda_ehci_gpios,
@@ -247,8 +247,7 @@ static struct platform_device omap_vwlan_device = {
 };
 
 static struct wl12xx_platform_data omap_panda_wlan_data  __initdata = {
-	/* PANDA ref clock is 38.4 MHz */
-	.board_ref_clock = 2,
+	.board_ref_clock = WL12XX_REFCLOCK_38, /* 38.4 MHz */
 };
 
 static struct twl6040_codec_data twl6040_codec = {
@@ -388,6 +387,21 @@ static struct omap_board_mux board_mux[] __initdata = {
 	/* NIRQ2 for twl6040 */
 	OMAP4_MUX(SYS_NIRQ2, OMAP_MUX_MODE0 |
 		  OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE),
+	/* GPIO_127 for twl6040 */
+	OMAP4_MUX(HDQ_SIO, OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT),
+	/* McPDM */
+	OMAP4_MUX(ABE_PDM_UL_DATA, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+	OMAP4_MUX(ABE_PDM_DL_DATA, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+	OMAP4_MUX(ABE_PDM_FRAME, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+	OMAP4_MUX(ABE_PDM_LB_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+	OMAP4_MUX(ABE_CLKS, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+	/* McBSP1 */
+	OMAP4_MUX(ABE_MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP4_MUX(ABE_MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+	OMAP4_MUX(ABE_MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT |
+		  OMAP_PULL_ENA),
+	OMAP4_MUX(ABE_MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+
 	{ .reg_offset = OMAP_MUX_TERMINATOR },
 };
 
