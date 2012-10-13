@@ -20,6 +20,7 @@
 #include <linux/amba/clcd.h>
 #include <linux/input.h>
 #include <linux/usb/ehci_pdriver.h>
+#include <linux/platform_data/usb-ehci-mxc.h>
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -98,7 +99,13 @@ static struct clk_lookup lookup[] = {
     {
         .dev_id = "fb",
         .clk = &ahb_clk
-    },
+    },{
+        .con_id = "ahb",
+        .clk = &ahb_clk
+    },{
+        .con_id = "ipg",
+        .clk = &ahb_clk
+    }
 };
 
 void __init nspire_timer_init(void)
@@ -225,9 +232,8 @@ static struct platform_device keypad_device = {
 
 /************** USB HOST *************/
 
-static struct usb_ehci_pdata hostusb_pdata = {
-    .caps_offset = 0x100,
-    .port_power_on = 1
+static struct mxc_usbh_platform_data hostusb_pdata = {
+    .portsc = 0x00000000
 };
 
 static struct resource hostusb_resources[] = {
@@ -243,7 +249,7 @@ static struct resource hostusb_resources[] = {
 };
 
 static struct platform_device hostusb_device = {
-	.name		= "ehci-platform",
+	.name		= "mxc-ehci",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(hostusb_resources),
 	.resource	= hostusb_resources,
@@ -254,8 +260,8 @@ static struct platform_device hostusb_device = {
 };
 
 static int nspire_usb_init(void) {
-    int err = 0, timeout;
-    unsigned usbcmd, usbmode, usbint, otgsc;
+    int err = 0;
+    unsigned otgsc;
     void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
 
     if (!hostusb_addr) {
@@ -264,64 +270,11 @@ static int nspire_usb_init(void) {
         goto out;
     }
 
-    printk(KERN_INFO "Halting USB controller\n");
-    usbcmd  = readl(hostusb_addr + 0x140);
-    usbcmd &= ~(1<<0); /* Stop controller */
-    writel(usbcmd, hostusb_addr + 0x140);
-
-    // printk(KERN_INFO "Waiting for USB controller to finish halting\n");
-//     /* Wait for halt to complete */
-//     timeout = 100000;
-//     while (!(((usbcmd = readl(hostusb_addr + 0x144)) & (1<<12))) && timeout-- );
-//     if (timeout <= 0) {
-//         printk(KERN_INFO "USB controller halt timed out\n");
-//         err = -1;
-//         goto out_unmap;
-//     }
-
-    printk(KERN_INFO "Reseting USB controller\n");
-    usbcmd  =  readl(hostusb_addr + 0x140);
-    usbcmd |=  (1<<1); /* Reset controller */
-    writel(usbcmd, hostusb_addr + 0x140);
-
-    printk(KERN_INFO "Waiting for USB controller to finish reseting\n");
-    /* Wait for reset to complete */
-    timeout = 10000;
-    while ( ((usbcmd = readl(hostusb_addr + 0x140)) & (1<<1)) && timeout-- );
-    if (timeout <= 0) {
-        printk(KERN_INFO "USB controller reset timed out\n");
-        err = -1;
-        goto out_unmap;
-    }
-
-    /* Set to host controller mode */
-    printk(KERN_INFO "Setting controller to host controller mode\n");
-    usbmode  = readl(hostusb_addr + 0x1a8);
-    usbmode |= 0b11;
-    writel(usbmode, hostusb_addr + 0x1a8);
-
-//
-//     printk(KERN_INFO "Disable non-EHCI interrupts on USB controller\n");
-//     usbint  =  readl(hostusb_addr + 0x148);
-//     printk(KERN_INFO "usbint before: %#x\n", usbint);
-//     usbint = 0;
-//     writel(usbint, hostusb_addr + 0x148);
-//     usbint  =  readl(hostusb_addr + 0x148);
-//     printk(KERN_INFO "usbint after: %#x\n", usbint);
-//
-//     printk(KERN_INFO "Clear non-EHCI interrupts on USB controller\n");
-//     usbint  =  readl(hostusb_addr + 0x144);
-//     printk(KERN_INFO "usbsts before: %#x\n", usbint);
-//     usbint = (1<<7);
-//     writel(usbint, hostusb_addr + 0x144);
-//     usbint  =  readl(hostusb_addr + 0x144);
-//     printk(KERN_INFO "usbsts after: %#x\n", usbint);
-
     /* Disable OTG interrupts */
     printk(KERN_INFO "Disable OTG interrupts\n");
     otgsc  = readl(hostusb_addr + 0x1a4);
-    printk(KERN_INFO "otgsc before: %#x\n", otgsc);
-    otgsc &= ~(0x3F<<25);
+    otgsc &= ~(0x7f<<24);
+    //otgsc |= (1<<2);
     writel(otgsc, hostusb_addr + 0x1a4);
 
     printk(KERN_INFO "Adding USB controller as platform device\n");
@@ -332,6 +285,11 @@ static int nspire_usb_init(void) {
     out:
 
     return err;
+}
+
+static irqreturn_t dummy_irq (int irqnum, void *priv) {
+    printk(KERN_INFO "IRQ %d assserted\n", irqnum);
+    return IRQ_HANDLED;
 }
 
 /************** INIT ***************/
@@ -346,6 +304,8 @@ void __init nspire_init(void)
     amba_device_register(&uart_device, &iomem_resource);
     platform_device_register(&keypad_device);
     nspire_usb_init();
+    request_irq(9, dummy_irq, 0, "dummy_test", NULL);
+
 }
 
 void nspire_restart(char mode, const char *cmd)
