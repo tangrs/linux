@@ -472,6 +472,7 @@ config ARCH_NETX
 
 config MACH_NSPIRE
 	bool "TI-NSPIRE based"
+	depends on MMU
 	select CPU_ARM926T
 	select GENERIC_CLOCKEVENTS
 	select ARM_VIC
