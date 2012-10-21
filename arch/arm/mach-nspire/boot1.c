@@ -26,7 +26,7 @@ static int boot1_read(char *buf, char **data, off_t offset, int len, int *eof, v
     }
 }
 
-int boot1_procfs_init(void) {
+int __init boot1_procfs_init(void) {
     boot1_proc_entry = create_proc_entry(BOOT1_PROCFS_NAME, 0644, NULL);
     if (!boot1_proc_entry) {
 		printk(KERN_ALERT "Error: Could not initialize /proc/%s\n",

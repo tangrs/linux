@@ -12,11 +12,11 @@
 #ifndef NSPIRE_IRQS_H
 #define NSPIRE_IRQS_H
 
-#define NSPIRE_IRQ_MASK         ((1<<19)|(1<<1)|(1<<16)|(1<<9)|(1<<21)) /*0x006FEB9A*/
+#define NSPIRE_IRQ_MASK         0x006FEB9A
 
 enum {
     NSPIRE_IRQ_UART = 1,
-    NSPIRE_IRQ_HOSTUSB = 9,
+    NSPIRE_IRQ_HOSTUSB = 8,
     NSPIRE_IRQ_KEYPAD = 16,
     NSPIRE_IRQ_TIMER2 = 19,
     NSPIRE_IRQ_LCD = 21

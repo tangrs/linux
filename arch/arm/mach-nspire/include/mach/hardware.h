@@ -1,5 +1,5 @@
 /*
- *  linux/arch/arm/mach-nspire/contrast.h
+ *  linux/arch/arm/mach-nspire/include/mach/timex.h
  *
  *  Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
  *
@@ -9,4 +9,7 @@
  *
  */
 
-int __init contrast_procfs_init(void);
+#ifndef NSPIRE_TIMEX_H
+#define NSPIRE_TIMEX_H
+
+#endif

@@ -118,7 +118,7 @@ config FSL_USB2_OTG
 
 config USB_MXS_PHY
 	tristate "Freescale MXS USB PHY support"
-	depends on ARCH_MXC || ARCH_MXS
+	depends on ARCH_MXC || ARCH_MXS || MACH_NSPIRE
 	select STMP_DEVICE
 	select USB_OTG_UTILS
 	help

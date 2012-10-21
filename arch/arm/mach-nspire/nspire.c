@@ -19,6 +19,8 @@
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
 #include <linux/input.h>
+#include <linux/usb/ehci_pdriver.h>
+#include <linux/platform_data/usb-ehci-mxc.h>
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -74,11 +76,14 @@ static AMBA_APB_DEVICE(uart, "uart0", 0, NSPIRE_APB_PHYS(NSPIRE_APB_UART), { NSP
 
 /**************** TIMER ****************/
 static struct clk sp804_clk = {
-	.rate	= 32000,
+	.rate	= 32768,
 };
 
 static struct clk apb_clk = {
 	.rate	= 33000000,
+};
+static struct clk uart_clk = {
+	.rate	= 12000000,
 };
 static struct clk ahb_clk = {
 	.rate	= 66000000,
@@ -92,12 +97,18 @@ static struct clk_lookup lookup[] = {
     },
     {
         .dev_id = "uart0",
-        .clk = &apb_clk
+        .clk = &uart_clk
     },
     {
         .dev_id = "fb",
         .clk = &ahb_clk
-    },
+    },{
+        .con_id = "ahb",
+        .clk = &ahb_clk
+    },{
+        .con_id = "ipg",
+        .clk = &ahb_clk
+    }
 };
 
 void __init nspire_timer_init(void)
@@ -224,6 +235,10 @@ static struct platform_device keypad_device = {
 
 /************** USB HOST *************/
 
+static struct usb_ehci_pdata hostusb_pdata = {
+    .has_tt = 1,
+    .caps_offset = 0x100
+};
 
 static struct resource hostusb_resources[] = {
 	{
@@ -238,11 +253,47 @@ static struct resource hostusb_resources[] = {
 };
 
 static struct platform_device hostusb_device = {
-	.name		= "ehci_hcd",
+	.name		= "ehci-platform",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(hostusb_resources),
 	.resource	= hostusb_resources,
+	.dev = {
+	    .platform_data = &hostusb_pdata,
+	    .coherent_dma_mask = ~0
+	}
 };
+
+static irqreturn_t usb_reset_irq (int irqnum, void *priv) {
+    printk(KERN_INFO "IRQ %d assserted\n", irqnum);
+    return IRQ_HANDLED;
+}
+
+static __init int nspire_usb_init(void) {
+    int err = 0;
+    unsigned otgsc;
+    void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+
+    if (!hostusb_addr) {
+        printk(KERN_WARNING "Could not allocate enough memory to initialize NSPIRE host USB\n");
+        err = -ENOMEM;
+        goto out;
+    }
+
+    /* Disable OTG interrupts */
+    printk(KERN_INFO "Disable OTG interrupts\n");
+    otgsc  = readl(hostusb_addr + 0x1a4);
+    otgsc &= ~(0x7f<<24);
+    //otgsc |= (1<<2);
+    writel(otgsc, hostusb_addr + 0x1a4);
+
+    printk(KERN_INFO "Adding USB controller as platform device\n");
+    err = platform_device_register(&hostusb_device);
+
+    iounmap(hostusb_addr);
+    out:
+
+    return err;
+}
 
 /************** INIT ***************/
 
@@ -255,7 +306,7 @@ void __init nspire_init(void)
     amba_device_register(&fb_device, &iomem_resource);
     amba_device_register(&uart_device, &iomem_resource);
     platform_device_register(&keypad_device);
-    platform_device_register(&hostusb_device);
+    nspire_usb_init();
 }
 
 void nspire_restart(char mode, const char *cmd)
