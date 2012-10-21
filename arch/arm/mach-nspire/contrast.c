@@ -42,7 +42,7 @@ static int contrast_write(struct file *file, const char __user *buffer, unsigned
     return count;
 }
 
-int contrast_procfs_init(void) {
+int __init contrast_procfs_init(void) {
     contrast_proc_entry = create_proc_entry(CONTRAST_PROCFS_NAME, 0644, NULL);
     if (!contrast_proc_entry) {
 		printk(KERN_ALERT "Error: Could not initialize /proc/%s\n",

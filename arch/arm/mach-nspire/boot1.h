@@ -9,4 +9,4 @@
  *
  */
 
-int boot1_procfs_init(void);
+int __init boot1_procfs_init(void);

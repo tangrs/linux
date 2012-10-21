@@ -76,11 +76,14 @@ static AMBA_APB_DEVICE(uart, "uart0", 0, NSPIRE_APB_PHYS(NSPIRE_APB_UART), { NSP
 
 /**************** TIMER ****************/
 static struct clk sp804_clk = {
-	.rate	= 32000,
+	.rate	= 32768,
 };
 
 static struct clk apb_clk = {
 	.rate	= 33000000,
+};
+static struct clk uart_clk = {
+	.rate	= 12000000,
 };
 static struct clk ahb_clk = {
 	.rate	= 66000000,
@@ -94,7 +97,7 @@ static struct clk_lookup lookup[] = {
     },
     {
         .dev_id = "uart0",
-        .clk = &apb_clk
+        .clk = &uart_clk
     },
     {
         .dev_id = "fb",
@@ -232,8 +235,9 @@ static struct platform_device keypad_device = {
 
 /************** USB HOST *************/
 
-static struct mxc_usbh_platform_data hostusb_pdata = {
-    .portsc = 0x00000000
+static struct usb_ehci_pdata hostusb_pdata = {
+    .has_tt = 1,
+    .caps_offset = 0x100
 };
 
 static struct resource hostusb_resources[] = {
@@ -249,7 +253,7 @@ static struct resource hostusb_resources[] = {
 };
 
 static struct platform_device hostusb_device = {
-	.name		= "mxc-ehci",
+	.name		= "ehci-platform",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(hostusb_resources),
 	.resource	= hostusb_resources,
@@ -259,7 +263,12 @@ static struct platform_device hostusb_device = {
 	}
 };
 
-static int nspire_usb_init(void) {
+static irqreturn_t usb_reset_irq (int irqnum, void *priv) {
+    printk(KERN_INFO "IRQ %d assserted\n", irqnum);
+    return IRQ_HANDLED;
+}
+
+static __init int nspire_usb_init(void) {
     int err = 0;
     unsigned otgsc;
     void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
@@ -280,16 +289,10 @@ static int nspire_usb_init(void) {
     printk(KERN_INFO "Adding USB controller as platform device\n");
     err = platform_device_register(&hostusb_device);
 
-    out_unmap:
     iounmap(hostusb_addr);
     out:
 
     return err;
-}
-
-static irqreturn_t dummy_irq (int irqnum, void *priv) {
-    printk(KERN_INFO "IRQ %d assserted\n", irqnum);
-    return IRQ_HANDLED;
 }
 
 /************** INIT ***************/
@@ -304,8 +307,6 @@ void __init nspire_init(void)
     amba_device_register(&uart_device, &iomem_resource);
     platform_device_register(&keypad_device);
     nspire_usb_init();
-    request_irq(9, dummy_irq, 0, "dummy_test", NULL);
-
 }
 
 void nspire_restart(char mode, const char *cmd)

@@ -9,4 +9,4 @@
  *
  */
 
-int contrast_procfs_init(void);
+int __init contrast_procfs_init(void);
