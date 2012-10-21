@@ -544,12 +544,12 @@ static void get_prompt_str(struct gstr *r, struct property *prop,
 		} else
 			jump->target = location;
 
-		if (CIRCLEQ_EMPTY(head))
+		if (TAILQ_EMPTY(head))
 			jump->index = 0;
 		else
-			jump->index = CIRCLEQ_LAST(head)->index + 1;
+			jump->index = TAILQ_LAST(head, jk_head)->index + 1;
 
-		CIRCLEQ_INSERT_TAIL(head, jump, entries);
+		TAILQ_INSERT_TAIL(head, jump, entries);
 	}
 
 	if (i > 0) {

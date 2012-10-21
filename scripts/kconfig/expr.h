@@ -175,12 +175,12 @@ struct menu {
 #define MENU_ROOT		0x0002
 
 struct jump_key {
-	CIRCLEQ_ENTRY(jump_key) entries;
+	TAILQ_ENTRY(jump_key) entries;
 	size_t offset;
 	struct menu *target;
 	int index;
 };
-CIRCLEQ_HEAD(jk_head, jump_key);
+TAILQ_HEAD(jk_head, jump_key);
 
 #define JUMP_NB			9
 
