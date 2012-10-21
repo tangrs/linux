@@ -299,12 +299,20 @@ ENTRY(ret_from_fork)
 	CFI_ENDPROC
 END(ret_from_fork)
 
-ENTRY(ret_from_kernel_execve)
-	movl %eax, %esp
-	movl $0,PT_EAX(%esp)
+ENTRY(ret_from_kernel_thread)
+	CFI_STARTPROC
+	pushl_cfi %eax
+	call schedule_tail
 	GET_THREAD_INFO(%ebp)
+	popl_cfi %eax
+	pushl_cfi $0x0202		# Reset kernel eflags
+	popfl_cfi
+	movl PT_EBP(%esp),%eax
+	call *PT_EBX(%esp)
+	movl $0,PT_EAX(%esp)
 	jmp syscall_exit
-END(ret_from_kernel_execve)
+	CFI_ENDPROC
+ENDPROC(ret_from_kernel_thread)
 
 /*
  * Interrupt exit functions should be protected against kprobes
@@ -622,22 +630,7 @@ work_notifysig:				# deal with pending signals and
 	movl %esp, %eax
 	jne work_notifysig_v86		# returning to kernel-space or
 					# vm86-space
-	TRACE_IRQS_ON
-	ENABLE_INTERRUPTS(CLBR_NONE)
-	movb PT_CS(%esp), %bl
-	andb $SEGMENT_RPL_MASK, %bl
-	cmpb $USER_RPL, %bl
-	jb resume_kernel
-	xorl %edx, %edx
-	call do_notify_resume
-	jmp resume_userspace
-
-	ALIGN
-work_notifysig_v86:
-	pushl_cfi %ecx			# save ti_flags for do_notify_resume
-	call save_v86_state		# %eax contains pt_regs pointer
-	popl_cfi %ecx
-	movl %eax, %esp
+1:
 #else
 	movl %esp, %eax
 #endif
@@ -650,6 +643,16 @@ work_notifysig_v86:
 	xorl %edx, %edx
 	call do_notify_resume
 	jmp resume_userspace
+
+#ifdef CONFIG_VM86
+	ALIGN
+work_notifysig_v86:
+	pushl_cfi %ecx			# save ti_flags for do_notify_resume
+	call save_v86_state		# %eax contains pt_regs pointer
+	popl_cfi %ecx
+	movl %eax, %esp
+	jmp 1b
+#endif
 END(work_pending)
 
 	# perform syscall exit tracing
@@ -1019,21 +1022,6 @@ END(spurious_interrupt_bug)
  * End of kprobes section
  */
 	.popsection
-
-ENTRY(ret_from_kernel_thread)
-	CFI_STARTPROC
-	pushl_cfi %eax
-	call schedule_tail
-	GET_THREAD_INFO(%ebp)
-	popl_cfi %eax
-	pushl_cfi $0x0202		# Reset kernel eflags
-	popfl_cfi
-	movl PT_EBP(%esp),%eax
-	call *PT_EBX(%esp)
-	call do_exit
-	ud2			# padding for call trace
-	CFI_ENDPROC
-ENDPROC(ret_from_kernel_thread)
 
 #ifdef CONFIG_XEN
 /* Xen doesn't set %esp to be precisely what the normal sysenter
