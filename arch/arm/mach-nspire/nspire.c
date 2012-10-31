@@ -25,6 +25,7 @@
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
 #include <mach/clkdev.h>
+#include <mach/sram.h>
 
 #include <asm/mach/time.h>
 #include <asm/hardware/timer-sp.h>
@@ -79,9 +80,6 @@ static struct clk sp804_clk = {
 	.rate	= 32768,
 };
 
-static struct clk apb_clk = {
-	.rate	= 33000000,
-};
 static struct clk uart_clk = {
 	.rate	= 12000000,
 };
@@ -243,7 +241,7 @@ static struct usb_ehci_pdata hostusb_pdata = {
 static struct resource hostusb_resources[] = {
 	{
 		.start	= NSPIRE_HOSTUSB_PHYS_BASE,
-		.end	= NSPIRE_HOSTUSB_PHYS_BASE + NSPIRE_HOSTUSB_SIZE,
+		.end	= NSPIRE_HOSTUSB_PHYS_BASE + NSPIRE_HOSTUSB_SIZE -1,
 		.flags	= IORESOURCE_MEM,
 	},{
 		.start	= NSPIRE_IRQ_HOSTUSB,
@@ -252,6 +250,8 @@ static struct resource hostusb_resources[] = {
 	},
 };
 
+static u64 usb_dma_mask = ~(u32)0;
+
 static struct platform_device hostusb_device = {
 	.name		= "ehci-platform",
 	.id		= 0,
@@ -259,14 +259,10 @@ static struct platform_device hostusb_device = {
 	.resource	= hostusb_resources,
 	.dev = {
 	    .platform_data = &hostusb_pdata,
-	    .coherent_dma_mask = ~0
+	    .coherent_dma_mask = ~0,
+	    .dma_mask = &usb_dma_mask
 	}
 };
-
-static irqreturn_t usb_reset_irq (int irqnum, void *priv) {
-    printk(KERN_INFO "IRQ %d assserted\n", irqnum);
-    return IRQ_HANDLED;
-}
 
 static __init int nspire_usb_init(void) {
     int err = 0;
@@ -303,6 +299,8 @@ void __init nspire_init_early(void){
 
 void __init nspire_init(void)
 {
+    sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
+
     amba_device_register(&fb_device, &iomem_resource);
     amba_device_register(&uart_device, &iomem_resource);
     platform_device_register(&keypad_device);

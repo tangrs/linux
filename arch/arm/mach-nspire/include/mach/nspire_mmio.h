@@ -19,7 +19,6 @@
     0xfee00000 - 0xff000000         0x90000000 - 0x90200000     (APB)
     0xfedff000 - 0xfee00000         0xdc000000 - 0xdc001000     (Interrupt Controller)
     0xfed7f000 - 0xfedff000         0x00000000 - 0x00080000     (Boot1 ROM)
-
 */
 #define NSPIRE_APB_PHYS_BASE        0x90000000
 #define NSPIRE_APB_SIZE             SZ_2M
@@ -37,7 +36,7 @@
 #define NSPIRE_LCD_PHYS_BASE        0xC0000000
 
 #define NSPIRE_HOSTUSB_PHYS_BASE    0xB0000000
-#define NSPIRE_HOSTUSB_SIZE         SZ_4K
+#define NSPIRE_HOSTUSB_SIZE         SZ_8K
 
 #define NSPIRE_BOOT1_PHYS_BASE      0x00000000
 #define NSPIRE_BOOT1_SIZE           0x00080000
@@ -49,5 +48,8 @@
 #define NSPIRE_APB_UART             0x20000
 #define NSPIRE_APB_KEYPAD           0xE0000
 #define NSPIRE_APB_CONTRAST         0xF0000
+
+#define NSPIRE_SRAM_PHYS_BASE       0xa4000000
+#define NSPIRE_SRAM_SIZE            0x00020000
 
 #endif

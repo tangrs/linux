@@ -1,1 +1,1 @@
-obj-y			:= nspire.o clock.o boot1.o contrast.o
+obj-y			:= nspire.o clock.o boot1.o contrast.o sram.o
