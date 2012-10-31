@@ -266,7 +266,7 @@ static struct platform_device hostusb_device = {
 
 static __init int nspire_usb_init(void) {
     int err = 0;
-    unsigned otgsc;
+    unsigned val;
     void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
 
     if (!hostusb_addr) {
@@ -277,13 +277,34 @@ static __init int nspire_usb_init(void) {
 
     /* Disable OTG interrupts */
     printk(KERN_INFO "Disable OTG interrupts\n");
-    otgsc  = readl(hostusb_addr + 0x1a4);
-    otgsc &= ~(0x7f<<24);
-    //otgsc |= (1<<2);
-    writel(otgsc, hostusb_addr + 0x1a4);
+    val  = readl(hostusb_addr + 0x1a4);
+    val &= ~(0x7f<<24);
+    writel(val, hostusb_addr + 0x1a4);
+
+    iounmap(hostusb_addr);
 
     printk(KERN_INFO "Adding USB controller as platform device\n");
     err = platform_device_register(&hostusb_device);
+    out:
+
+    return err;
+}
+
+static __init int nspire_usb_workaround(void) {
+    int err = 0;
+    unsigned val;
+    void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+
+    if (!hostusb_addr) {
+        printk(KERN_WARNING "Could not do USB workaround\n");
+        err = -ENOMEM;
+        goto out;
+    }
+
+    printk(KERN_INFO "Temporary USB hack to force USB to connect as fullspeed\n");
+    val  = readl(hostusb_addr + 0x184);
+    val |= (1<<24);
+    writel(val, hostusb_addr + 0x184);
 
     iounmap(hostusb_addr);
     out:
@@ -316,6 +337,7 @@ void __init nspire_init_late(void)
 {
     boot1_procfs_init();
     contrast_procfs_init();
+    nspire_usb_workaround();
 }
 
 MACHINE_START(NSPIRE, "TI-NSPIRE CX Calculator")
