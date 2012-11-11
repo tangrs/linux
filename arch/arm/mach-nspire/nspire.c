@@ -46,12 +46,14 @@ static struct map_desc nspire_io_regs[] __initdata = {
 		.pfn		= __phys_to_pfn(NSPIRE_APB_PHYS_BASE),
 		.length		= NSPIRE_APB_SIZE,
 		.type		= MT_DEVICE,
-	}, {
+	},
+	{
 		.virtual	= NSPIRE_VIC_VIRT_BASE,
 		.pfn		= __phys_to_pfn(NSPIRE_VIC_PHYS_BASE),
 		.length		= NSPIRE_VIC_SIZE,
 		.type		= MT_DEVICE,
-	},{
+	},
+	{
 		.virtual	= NSPIRE_BOOT1_VIRT_BASE,
 		.pfn		= __phys_to_pfn(NSPIRE_BOOT1_PHYS_BASE),
 		.length		= NSPIRE_BOOT1_SIZE,
@@ -88,25 +90,27 @@ static struct clk ahb_clk = {
 };
 
 static struct clk_lookup lookup[] = {
-    {
-        .dev_id = "sp804",
-        .con_id = "timer2",
-        .clk = &sp804_clk
-    },
-    {
-        .dev_id = "uart0",
-        .clk = &uart_clk
-    },
-    {
-        .dev_id = "fb",
-        .clk = &ahb_clk
-    },{
-        .con_id = "ahb",
-        .clk = &ahb_clk
-    },{
-        .con_id = "ipg",
-        .clk = &ahb_clk
-    }
+	{
+		.dev_id = "sp804",
+		.con_id = "timer2",
+		.clk = &sp804_clk
+	},
+	{
+		.dev_id = "uart0",
+		.clk = &uart_clk
+	},
+	{
+		.dev_id = "fb",
+		.clk = &ahb_clk
+	},
+	{
+		.con_id = "ahb",
+		.clk = &ahb_clk
+	},
+	{
+		.con_id = "ipg",
+		.clk = &ahb_clk
+	}
 };
 
 void __init nspire_timer_init(void)
@@ -115,12 +119,12 @@ void __init nspire_timer_init(void)
 }
 
 static struct sys_timer nspire_sys_timer = {
-	.init		= nspire_timer_init,
+	.init = nspire_timer_init,
 };
 
 /************** FRAMEBUFFER **************/
 static struct clcd_panel lcd_panel = {
-	    .mode		= {
+	.mode		= {
 		.name		= "calculator",
 		.refresh	= 60,
 		.xres		= 320,
@@ -147,7 +151,7 @@ static int nspire_clcd_setup(struct clcd_fb *fb)
 	fb->fb.screen_base = dma_alloc_writecombine(&fb->dev->dev,
 		PANEL_SIZE, &dma, GFP_KERNEL);
 	if (!fb->fb.screen_base) {
-		printk(KERN_ERR "CLCD: unable to map framebuffer\n");
+		pr_err("CLCD: unable to map framebuffer\n");
 		return -ENOMEM;
 	}
 
@@ -195,14 +199,14 @@ static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE, { NSPIRE_IRQ_LCD }, &n
 
 /************** Keypad *************/
 static unsigned int nspire_cx_evtcode_map[][11] = {
-    { KEY_ENTER, KEY_ENTER, 0, 0, KEY_SPACE, KEY_Z, KEY_Y, KEY_0, KEY_TAB, 0, 0 },
-    { KEY_X, KEY_W, KEY_V, KEY_3, KEY_U, KEY_T, KEY_S, KEY_1, 0, 0, KEY_RIGHT },
-    { KEY_R, KEY_Q, KEY_P, KEY_6, KEY_O, KEY_N, KEY_M, KEY_4, KEY_APOSTROPHE, KEY_DOWN, 0 },
-    { KEY_L, KEY_K, KEY_J, KEY_9, KEY_I, KEY_H, KEY_G, KEY_7, KEY_SLASH, KEY_LEFT, 0 },
-    { KEY_F, KEY_E, KEY_D, 0, KEY_C, KEY_B, KEY_A, KEY_EQUAL, KEY_KPASTERISK, KEY_UP, 0},
-    { 0, KEY_LEFTALT, KEY_MINUS, KEY_RIGHTBRACE, KEY_DOT, KEY_LEFTBRACE, KEY_5, 0, KEY_SEMICOLON, KEY_BACKSPACE, KEY_DELETE },
-    { KEY_BACKSLASH, 0, KEY_KPPLUS, KEY_PAGEUP, KEY_2, KEY_PAGEDOWN, KEY_8, KEY_ESC, 0, KEY_TAB, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, KEY_LEFTSHIFT, KEY_LEFTCTRL, KEY_COMMA }
+	{ KEY_ENTER, KEY_ENTER, 0, 0, KEY_SPACE, KEY_Z, KEY_Y, KEY_0, KEY_TAB, 0, 0 },
+	{ KEY_X, KEY_W, KEY_V, KEY_3, KEY_U, KEY_T, KEY_S, KEY_1, 0, 0, KEY_RIGHT },
+	{ KEY_R, KEY_Q, KEY_P, KEY_6, KEY_O, KEY_N, KEY_M, KEY_4, KEY_APOSTROPHE, KEY_DOWN, 0 },
+	{ KEY_L, KEY_K, KEY_J, KEY_9, KEY_I, KEY_H, KEY_G, KEY_7, KEY_SLASH, KEY_LEFT, 0 },
+	{ KEY_F, KEY_E, KEY_D, 0, KEY_C, KEY_B, KEY_A, KEY_EQUAL, KEY_KPASTERISK, KEY_UP, 0},
+	{ 0, KEY_LEFTALT, KEY_MINUS, KEY_RIGHTBRACE, KEY_DOT, KEY_LEFTBRACE, KEY_5, 0, KEY_SEMICOLON, KEY_BACKSPACE, KEY_DELETE },
+	{ KEY_BACKSLASH, 0, KEY_KPPLUS, KEY_PAGEUP, KEY_2, KEY_PAGEDOWN, KEY_8, KEY_ESC, 0, KEY_TAB, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, KEY_LEFTSHIFT, KEY_LEFTCTRL, KEY_COMMA }
 };
 
 static struct resource keypad_resources[] = {
@@ -210,7 +214,8 @@ static struct resource keypad_resources[] = {
 		.start	= NSPIRE_APB_PHYS(NSPIRE_APB_KEYPAD),
 		.end	= NSPIRE_APB_PHYS(NSPIRE_APB_KEYPAD + SZ_4K),
 		.flags	= IORESOURCE_MEM,
-	},{
+	},
+	{
 		.start	= NSPIRE_IRQ_KEYPAD,
 		.end	= NSPIRE_IRQ_KEYPAD,
 		.flags	= IORESOURCE_IRQ,
@@ -218,7 +223,7 @@ static struct resource keypad_resources[] = {
 };
 
 static struct nspire_keypad_data keypad_data = {
-    .evtcodes = nspire_cx_evtcode_map
+	.evtcodes = nspire_cx_evtcode_map
 };
 
 static struct platform_device keypad_device = {
@@ -234,16 +239,17 @@ static struct platform_device keypad_device = {
 /************** USB HOST *************/
 
 static struct usb_ehci_pdata hostusb_pdata = {
-    .has_tt = 1,
-    .caps_offset = 0x100
+	.has_tt = 1,
+	.caps_offset = 0x100
 };
 
 static struct resource hostusb_resources[] = {
 	{
 		.start	= NSPIRE_HOSTUSB_PHYS_BASE,
-		.end	= NSPIRE_HOSTUSB_PHYS_BASE + NSPIRE_HOSTUSB_SIZE -1,
+		.end	= NSPIRE_HOSTUSB_PHYS_BASE + NSPIRE_HOSTUSB_SIZE - 1,
 		.flags	= IORESOURCE_MEM,
-	},{
+	},
+	{
 		.start	= NSPIRE_IRQ_HOSTUSB,
 		.end	= NSPIRE_IRQ_HOSTUSB,
 		.flags	= IORESOURCE_IRQ,
@@ -264,68 +270,70 @@ static struct platform_device hostusb_device = {
 	}
 };
 
-static __init int nspire_usb_init(void) {
-    int err = 0;
-    unsigned val;
-    void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+static __init int nspire_usb_init(void)
+{
+	int err = 0;
+	unsigned val;
+	void __iomem *hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
 
-    if (!hostusb_addr) {
-        printk(KERN_WARNING "Could not allocate enough memory to initialize NSPIRE host USB\n");
-        err = -ENOMEM;
-        goto out;
-    }
+	if (!hostusb_addr) {
+		pr_warn("Could not allocate enough memory to initialize NSPIRE host USB\n");
+		err = -ENOMEM;
+		goto out;
+	}
 
-    /* Disable OTG interrupts */
-    printk(KERN_INFO "Disable OTG interrupts\n");
-    val  = readl(hostusb_addr + 0x1a4);
-    val &= ~(0x7f<<24);
-    writel(val, hostusb_addr + 0x1a4);
+	/* Disable OTG interrupts */
+	pr_info("Disable OTG interrupts\n");
+	val  = readl(hostusb_addr + 0x1a4);
+	val &= ~(0x7f<<24);
+	writel(val, hostusb_addr + 0x1a4);
 
-    iounmap(hostusb_addr);
+	iounmap(hostusb_addr);
 
-    printk(KERN_INFO "Adding USB controller as platform device\n");
-    err = platform_device_register(&hostusb_device);
-    out:
+	pr_info("Adding USB controller as platform device\n");
+	err = platform_device_register(&hostusb_device);
+out:
 
-    return err;
+	return err;
 }
 
-static __init int nspire_usb_workaround(void) {
-    int err = 0;
-    unsigned val;
-    void __iomem * hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+static __init int nspire_usb_workaround(void)
+{
+	int err = 0;
+	unsigned val;
+	void __iomem *hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
 
-    if (!hostusb_addr) {
-        printk(KERN_WARNING "Could not do USB workaround\n");
-        err = -ENOMEM;
-        goto out;
-    }
+	if (!hostusb_addr) {
+		pr_warn("Could not do USB workaround\n");
+		err = -ENOMEM;
+		goto out;
+	}
 
-    printk(KERN_INFO "Temporary USB hack to force USB to connect as fullspeed\n");
-    val  = readl(hostusb_addr + 0x184);
-    val |= (1<<24);
-    writel(val, hostusb_addr + 0x184);
+	pr_info("Temporary USB hack to force USB to connect as fullspeed\n");
+	val  = readl(hostusb_addr + 0x184);
+	val |= (1<<24);
+	writel(val, hostusb_addr + 0x184);
 
-    iounmap(hostusb_addr);
-    out:
+	iounmap(hostusb_addr);
+out:
 
-    return err;
+	return err;
 }
 
 /************** INIT ***************/
 
-void __init nspire_init_early(void){
-    clkdev_add_table(lookup, ARRAY_SIZE(lookup));
+void __init nspire_init_early(void)
+{
+	clkdev_add_table(lookup, ARRAY_SIZE(lookup));
 }
 
 void __init nspire_init(void)
 {
-    sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
-
-    amba_device_register(&fb_device, &iomem_resource);
-    amba_device_register(&uart_device, &iomem_resource);
-    platform_device_register(&keypad_device);
-    nspire_usb_init();
+	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
+	amba_device_register(&fb_device, &iomem_resource);
+	amba_device_register(&uart_device, &iomem_resource);
+	platform_device_register(&keypad_device);
+	nspire_usb_init();
 }
 
 void nspire_restart(char mode, const char *cmd)
@@ -335,9 +343,9 @@ void nspire_restart(char mode, const char *cmd)
 
 void __init nspire_init_late(void)
 {
-    boot1_procfs_init();
-    contrast_procfs_init();
-    nspire_usb_workaround();
+	boot1_procfs_init();
+	contrast_procfs_init();
+	nspire_usb_workaround();
 }
 
 MACHINE_START(NSPIRE, "TI-NSPIRE CX Calculator")

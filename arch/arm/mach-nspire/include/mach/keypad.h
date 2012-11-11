@@ -9,7 +9,11 @@
  *
  */
 
+#ifndef NSPIRE_KEYPAD_H
+#define NSPIRE_KEYPAD_H
+
 struct nspire_keypad_data {
-    unsigned int (*evtcodes)[11];
+	unsigned int (*evtcodes)[11];
 };
 
+#endif

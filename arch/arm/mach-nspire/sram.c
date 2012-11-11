@@ -55,8 +55,8 @@ int __init sram_init(unsigned long base, unsigned long size)
 
 	sram_pool = gen_pool_create(10, -1);
 	if (!sram_pool) {
-	    printk(KERN_WARNING "Cannot create sram pool!\n");
-	    return -ENOMEM;
+		pr_warn("Cannot create sram pool!\n");
+		return -ENOMEM;
 	}
 	gen_pool_add(sram_pool, base, size, -1);
 	sram_virt_base = ioremap(sram_phys_base, size);

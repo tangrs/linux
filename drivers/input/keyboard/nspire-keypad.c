@@ -3,7 +3,7 @@
  *
  * Author: Daniel Tang
  *
- * License terms:GNU General Public License (GPL) version 2
+ * License terms: GNU General Public License (GPL) version 2
  *
  * Nspire keypad controller driver
  */
@@ -33,53 +33,54 @@ static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
 {
 	struct nspire_keypad *keypad = dev_id;
 	short current_state[8];
-    int i, j;
+	int i, j;
 
-    memcpy_fromio(current_state, keypad->reg_base + 0x10, sizeof(current_state));
-    for (i=0; i<8; i++) {
-        short current_bits = current_state[i];
-        short last_bits = keypad->keymap[i];
-        for (j=0; j<11; j++) {
-            if ((current_bits & (1<<j)) != (last_bits & (1<<j))) {
-                if (keypad->pdata->evtcodes[i][j]) {
-                    //printk(KERN_INFO "[%d %s]\n", keypad->pdata->evtcodes[i][j], current_bits & (1<<j) ? "u" : "d" );
-                    input_report_key(keypad->input, keypad->pdata->evtcodes[i][j], !!(current_bits & (1<<j)));
-                }
-            }
-        }
-    }
-    memcpy(keypad->keymap, current_state, sizeof(keypad->keymap));
-    input_sync(keypad->input);
+	memcpy_fromio(current_state, keypad->reg_base + 0x10, sizeof(current_state));
+	for (i = 0; i < 8; i++) {
+		short current_bits = current_state[i];
+		short last_bits = keypad->keymap[i];
+		for (j = 0; j < 11; j++) {
+			if ((current_bits & (1<<j)) != (last_bits & (1<<j))) {
+				if (keypad->pdata->evtcodes[i][j]) {
+					/*printk(KERN_INFO "[%d %s]\n", keypad->pdata->evtcodes[i][j], current_bits & (1<<j) ? "u" : "d" );*/
+					input_report_key(keypad->input, keypad->pdata->evtcodes[i][j], !!(current_bits & (1<<j)));
+				}
+			}
+		}
+	}
+	memcpy(keypad->keymap, current_state, sizeof(keypad->keymap));
+	input_sync(keypad->input);
 
 	writel(0b111, keypad->reg_base + 0x8);
 	return IRQ_HANDLED;
 }
 
-static int nspire_keypad_chip_init(struct nspire_keypad *keypad) {
-    unsigned long val;
+static int nspire_keypad_chip_init(struct nspire_keypad *keypad)
+{
+	unsigned long val;
 
-    spin_lock(&keypad->lock);
-    memcpy_fromio(keypad->keymap, keypad->reg_base + 0x10, sizeof(keypad->keymap));
+	spin_lock(&keypad->lock);
+	memcpy_fromio(keypad->keymap, keypad->reg_base + 0x10, sizeof(keypad->keymap));
 
-    /* We can assume the bootloader (i.e. TI-NSPIRE software) has already initialized this */
-    /* Needs to be fixed if we're no longer booting in-place from NSPIRE software */
-    val = readl(keypad->reg_base);
-    val &= ~(0b11);
-    val |= 3; /* Set scan mode to 3 */
-    writel(val, keypad->reg_base);
+	/* We can assume the bootloader (i.e. TI-NSPIRE software) has already initialized this */
+	/* Needs to be fixed if we're no longer booting in-place from NSPIRE software */
+	val = readl(keypad->reg_base);
+	val &= ~(0b11);
+	val |= 3; /* Set scan mode to 3 */
+	writel(val, keypad->reg_base);
 
-    /* Enable interrupts */
-    writel((1<<1), keypad->reg_base + 0xc);
+	/* Enable interrupts */
+	writel((1<<1), keypad->reg_base + 0xc);
 
-    /* Disable GPIO interrupts to prevent hanging on touchpad */
-    /* Possibly used to detect touchpad events */
-    writel(0, keypad->reg_base + 0x40);
-    /* Acknowledge existing interrupts */
-    writel(~0, keypad->reg_base + 0x44);
+	/* Disable GPIO interrupts to prevent hanging on touchpad */
+	/* Possibly used to detect touchpad events */
+	writel(0, keypad->reg_base + 0x40);
+	/* Acknowledge existing interrupts */
+	writel(~0, keypad->reg_base + 0x44);
 
-    spin_unlock(&keypad->lock);
+	spin_unlock(&keypad->lock);
 
-    return 0;
+	return 0;
 }
 
 static int __init nspire_keypad_probe(struct platform_device *pdev)
@@ -204,7 +205,7 @@ static struct platform_driver nspire_keypad_driver = {
 
 static int __init nspire_keypad_init(void)
 {
-    printk(KERN_INFO "TI-NSPIRE keypad\n");
+	pr_info("TI-NSPIRE keypad\n");
 	return platform_driver_probe(&nspire_keypad_driver, nspire_keypad_probe);
 }
 module_init(nspire_keypad_init);

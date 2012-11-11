@@ -16,26 +16,28 @@
 
 static struct proc_dir_entry *boot1_proc_entry;
 
-static int boot1_read(char *buf, char **data, off_t offset, int len, int *eof, void *privdata) {
-    if (offset < NSPIRE_BOOT1_SIZE) {
-        *data = (char*)NSPIRE_BOOT1_VIRT_BASE + offset;
-        return NSPIRE_BOOT1_SIZE - offset;
-    }else{
-        *eof = 1;
-        return 0;
-    }
+static int boot1_read(char *buf, char **data, off_t offset, int len, int *eof, void *privdata)
+{
+	if (offset < NSPIRE_BOOT1_SIZE) {
+		*data = (char *)NSPIRE_BOOT1_VIRT_BASE + offset;
+		return NSPIRE_BOOT1_SIZE - offset;
+	} else {
+		*eof = 1;
+		return 0;
+	}
 }
 
-int __init boot1_procfs_init(void) {
-    boot1_proc_entry = create_proc_entry(BOOT1_PROCFS_NAME, 0644, NULL);
-    if (!boot1_proc_entry) {
-		printk(KERN_ALERT "Error: Could not initialize /proc/%s\n",
+int __init boot1_procfs_init(void)
+{
+	boot1_proc_entry = create_proc_entry(BOOT1_PROCFS_NAME, 0644, NULL);
+	if (!boot1_proc_entry) {
+		pr_alert("Error: Could not initialize /proc/%s\n",
 		       BOOT1_PROCFS_NAME);
 		return -ENOMEM;
 	}
 
 	boot1_proc_entry->read_proc = boot1_read;
-	boot1_proc_entry->size 	    = NSPIRE_BOOT1_SIZE;
-    printk(KERN_INFO "BOOT1 ROM mapped to /proc/%s\n", BOOT1_PROCFS_NAME);
-    return 0;
+	boot1_proc_entry->size      = NSPIRE_BOOT1_SIZE;
+	pr_info("BOOT1 ROM mapped to /proc/%s\n", BOOT1_PROCFS_NAME);
+	return 0;
 }

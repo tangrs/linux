@@ -1,5 +1,5 @@
 /*
- *  linux/arch/arm/mach-nspire/include/mach/timex.h
+ *  linux/arch/arm/mach-nspire/include/mach/hardware.h
  *
  *  Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
  *
@@ -9,7 +9,7 @@
  *
  */
 
-#ifndef NSPIRE_TIMEX_H
-#define NSPIRE_TIMEX_H
+#ifndef NSPIRE_HARDWARE_H
+#define NSPIRE_HARDWARE_H
 
 #endif
