@@ -470,7 +470,7 @@ config ARCH_NETX
 	help
 	  This enables support for systems based on the Hilscher NetX Soc
 
-config MACH_NSPIRE
+config ARCH_NSPIRE
 	bool "TI-NSPIRE based"
 	depends on MMU
 	select CPU_ARM926T

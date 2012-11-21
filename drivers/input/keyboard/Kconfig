@@ -419,7 +419,7 @@ config KEYBOARD_NOMADIK
 
 config KEYBOARD_NSPIRE
 	tristate "TI-NSPIRE builtin keyboard"
-	depends on MACH_NSPIRE && EXPERIMENTAL
+	depends on ARCH_NSPIRE && EXPERIMENTAL
 	help
 	  Say Y here if you want to use the builtin keypad on the TI-NSPIRE.
 

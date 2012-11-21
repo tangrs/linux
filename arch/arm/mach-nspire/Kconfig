@@ -1,3 +1,31 @@
 if ARCH_NSPIRE
 
+choice
+	prompt "Early printk and boot message serial interface"
+	help
+	  Early printk output interface
+	depends on EARLY_PRINTK
+	default NSPIRE_EARLYPRINTK_CX
+
+config NSPIRE_EARLYPRINTK_CLASSIC
+	bool "Classic"
+
+config NSPIRE_EARLYPRINTK_CX
+	bool "CX model"
+endchoice
+
+
+menu "Supported models"
+
+config MACH_NSPIRECX
+	bool "CX/CX CAS"
+
+config MACH_NSPIRETP
+	bool "Touchpad/Touchpad CAS"
+
+config MACH_NSPIRECLP
+	bool "Clickpad/Clickpad CAS"
+
+endmenu
+
 endif
