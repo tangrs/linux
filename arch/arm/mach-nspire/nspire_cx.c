@@ -113,9 +113,37 @@ static void cx_clcd_remove(struct clcd_fb *fb)
 		fb->fb.screen_base, fb->fb.fix.smem_start);
 }
 
+/*Own function to check, as we need to work around a bug(?) in clcdfb_check*/
+static int cx_clcd_check(struct clcd_fb *fb, struct fb_var_screeninfo *var)
+{
+	int clcdfb_check_res;
+
+	/*Only the values given above in struct clcd_panel make sense here*/
+#define WRONG(v) (var->v != fb->panel->mode.v)
+	if (WRONG(hsync_len) || WRONG(right_margin) || WRONG(left_margin))
+		return -EINVAL;
+#undef WRONG
+
+	/*clcdfb_check wants right_margin, left_margin and hsync_len
+	to be between (incl.) 6 and 256*/
+	var->left_margin = var->right_margin = var->hsync_len = 6;
+
+	clcdfb_check_res = clcdfb_check(fb, var);
+	if (clcdfb_check_res)
+		return clcdfb_check_res;
+
+#define SETRIGHT(v) (var->v = fb->panel->mode.v)
+	SETRIGHT(right_margin);
+	SETRIGHT(left_margin);
+	SETRIGHT(hsync_len);
+#undef SETRIGHT
+
+	return 0;
+}
+
 static struct clcd_board cx_clcd_data = {
 	.name		= "lcd controller",
-	.check		= clcdfb_check,
+	.check		= cx_clcd_check,
 	.decode		= clcdfb_decode,
 	.setup		= cx_clcd_setup,
 	.mmap		= cx_clcd_mmap,
