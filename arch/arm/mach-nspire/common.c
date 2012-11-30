@@ -136,7 +136,8 @@ void __init nspire_init_early(void)
 }
 
 /* Common init */
-void __init nspire_init(void) {
+void __init nspire_init(void)
+{
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
 }
 

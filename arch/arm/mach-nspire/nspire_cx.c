@@ -45,7 +45,8 @@ static void __init cx_init_irq(void)
 
 /**************** UART **************/
 
-static AMBA_APB_DEVICE(uart, "uart0", 0, NSPIRE_APB_PHYS(NSPIRE_APB_UART), { NSPIRE_IRQ_UART }, NULL);
+static AMBA_APB_DEVICE(uart, "uart0", 0, NSPIRE_APB_PHYS(NSPIRE_APB_UART),
+	{ NSPIRE_IRQ_UART }, NULL);
 
 /**************** TIMER ****************/
 
@@ -130,7 +131,8 @@ static __init int cx_usb_init(void)
 {
 	int err = 0;
 	unsigned val;
-	void __iomem *hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+	void __iomem *hostusb_addr =
+		ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
 
 	if (!hostusb_addr) {
 		pr_warn("Could not allocate enough memory to initialize NSPIRE host USB\n");
@@ -157,7 +159,8 @@ static __init int cx_usb_workaround(void)
 {
 	int err = 0;
 	unsigned val;
-	void __iomem *hostusb_addr = ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+	void __iomem *hostusb_addr =
+		ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
 
 	if (!hostusb_addr) {
 		pr_warn("Could not do USB workaround\n");
@@ -183,7 +186,6 @@ void __init cx_init(void)
 	nspire_init();
 	amba_device_register(&fb_device, &iomem_resource);
 	amba_device_register(&uart_device, &iomem_resource);
-	//platform_device_register(&nspire_nand_device);
 
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);

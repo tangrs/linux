@@ -16,7 +16,8 @@
 
 static struct proc_dir_entry *boot1_proc_entry;
 
-static int boot1_read(char *buf, char **data, off_t offset, int len, int *eof, void *privdata)
+static int boot1_read(char *buf, char **data, off_t offset,
+	int len, int *eof, void *privdata)
 {
 	if (offset < NSPIRE_BOOT1_SIZE) {
 		*data = (char *)NSPIRE_BOOT1_VIRT_BASE + offset;

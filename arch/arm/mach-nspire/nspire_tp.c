@@ -39,9 +39,10 @@
 #include "classic.h"
 
 
-static void __init tp_init(void) {
-    nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
-    nspire_classic_init();
+static void __init tp_init(void)
+{
+	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
+	nspire_classic_init();
 }
 
 MACHINE_START(NSPIRETP, "TI-NSPIRE Touchpad Calculator")

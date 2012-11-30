@@ -18,7 +18,8 @@
 
 static struct proc_dir_entry *contrast_proc_entry;
 
-static int contrast_read(char *buf, char **data, off_t offset, int len, int *eof, void *privdata)
+static int contrast_read(char *buf, char **data, off_t offset,
+	int len, int *eof, void *privdata)
 {
 	len = snprintf(buf, PAGE_SIZE, "Screen backlight is %d.\n",
 readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20)));
@@ -30,7 +31,8 @@ readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20)));
 	return len-offset;
 }
 
-static int contrast_write(struct file *file, const char __user *buffer, unsigned long count, void *privdata)
+static int contrast_write(struct file *file, const char __user *buffer,
+	unsigned long count, void *privdata)
 {
 	unsigned char val = 128;
 	int ret = kstrtou8_from_user(buffer, count, 10, &val);
@@ -44,7 +46,8 @@ static int contrast_write(struct file *file, const char __user *buffer, unsigned
 
 int __init contrast_procfs_init(void)
 {
-	contrast_proc_entry = create_proc_entry(CONTRAST_PROCFS_NAME, 0644, NULL);
+	contrast_proc_entry = create_proc_entry(CONTRAST_PROCFS_NAME,
+		0644, NULL);
 	if (!contrast_proc_entry) {
 		pr_alert("Error: Could not initialize /proc/%s\n",
 		       CONTRAST_PROCFS_NAME);
