@@ -40,7 +40,7 @@
 /**************** IRQ ****************/
 static void __init cx_init_irq(void)
 {
-	vic_init(IOMEM(NSPIRE_INTTERUPT_VIRT_BASE), 0, NSPIRE_IRQ_MASK, 0);
+	vic_init(IOMEM(NSPIRE_INTERRUPT_VIRT_BASE), 0, NSPIRE_IRQ_MASK, 0);
 }
 
 /**************** UART **************/

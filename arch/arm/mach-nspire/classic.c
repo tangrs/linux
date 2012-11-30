@@ -37,8 +37,8 @@ static inline int check_interrupt(void __iomem *base, struct pt_regs *regs)
 		handle_IRQ(irqnr, regs);
 
 		/* Reset priorities */
-		prev_priority = readl(IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x28));
-		writel(prev_priority, IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x2c));
+		prev_priority = readl(IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x28));
+		writel(prev_priority, IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x2c));
 		return 1;
 	}
 	return 0;
@@ -50,7 +50,7 @@ asmlinkage void __exception_irq_entry
 	int serviced;
 
 	do {
-		void __iomem *reg_base = IOMEM(NSPIRE_INTTERUPT_VIRT_BASE);
+		void __iomem *reg_base = IOMEM(NSPIRE_INTERRUPT_VIRT_BASE);
 		serviced = 0;
 
 		/* IRQ */
@@ -62,7 +62,7 @@ asmlinkage void __exception_irq_entry
 
 static void classic_irq_ack(struct irq_data *d)
 {
-	readl(IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x28));
+	readl(IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x28));
 }
 
 static void __init classic_allocate_gc(void)
@@ -71,7 +71,7 @@ static void __init classic_allocate_gc(void)
 	struct irq_chip_type *ct;
 
 	gc = irq_alloc_generic_chip("NINT", 1, 0,
-		IOMEM(NSPIRE_INTTERUPT_VIRT_BASE), handle_level_irq);
+		IOMEM(NSPIRE_INTERRUPT_VIRT_BASE), handle_level_irq);
 
 	ct = gc->chip_types;
 	ct->chip.irq_ack = classic_irq_ack;
@@ -89,22 +89,22 @@ static void __init classic_allocate_gc(void)
 void __init nspire_classic_init_irq(void)
 {
 	/* No stickies */
-	writel(0, IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x204));
+	writel(0, IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x204));
 
 	/* Disable all interrupts */
-	writel(~0, IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0xc));
-	writel(~0, IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x10c));
+	writel(~0, IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0xc));
+	writel(~0, IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x10c));
 
 	/* Set all priorities to 0 */
-	memset_io(IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x300), 0, 0x7f);
+	memset_io(IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x300), 0, 0x7f);
 
 	/* Accept interrupts of all priorities */
-	writel(0xf, IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x2c));
-	writel(0xf, IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x12c));
+	writel(0xf, IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x2c));
+	writel(0xf, IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x12c));
 
 	/* Clear existing interrupts */
-	readl(IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x28));
-	readl(IOMEM(NSPIRE_INTTERUPT_VIRT_BASE + 0x128));
+	readl(IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x28));
+	readl(IOMEM(NSPIRE_INTERRUPT_VIRT_BASE + 0x128));
 
 	/* Add chip */
 	classic_allocate_gc();

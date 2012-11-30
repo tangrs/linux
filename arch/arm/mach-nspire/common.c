@@ -121,7 +121,7 @@ struct platform_device nspire_hostusb_device = {
 struct map_desc nspire_io_regs[] __initdata = {
 	IOTABLE_ENTRY(APB),
 	IOTABLE_ENTRY(BOOT1),
-	IOTABLE_ENTRY(INTTERUPT),
+	IOTABLE_ENTRY(INTERRUPT),
 };
 
 void __init nspire_map_io(void)
