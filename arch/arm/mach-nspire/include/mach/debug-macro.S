@@ -23,5 +23,6 @@
 #endif
 
 #ifdef CONFIG_NSPIRE_EARLYPRINTK_CLASSIC
+#define UART_SHIFT 2
 #include <asm/hardware/debug-8250.S>
 #endif

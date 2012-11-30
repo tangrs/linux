@@ -18,12 +18,17 @@ endchoice
 menu "Supported models"
 
 config MACH_NSPIRECX
+	select GENERIC_CLOCKEVENTS
+	select ARM_VIC
+	select ARM_TIMER_SP804
 	bool "CX/CX CAS"
 
 config MACH_NSPIRETP
+	select GENERIC_IRQ_CHIP
 	bool "Touchpad/Touchpad CAS"
 
 config MACH_NSPIRECLP
+	select GENERIC_IRQ_CHIP
 	bool "Clickpad/Clickpad CAS"
 
 endmenu

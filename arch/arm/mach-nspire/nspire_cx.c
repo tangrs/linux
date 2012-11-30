@@ -1,5 +1,5 @@
 /*
- *	linux/arch/arm/mach-nspire/nspire.c
+ *	linux/arch/arm/mach-nspire/nspire_cx.c
  *
  *	Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
  *

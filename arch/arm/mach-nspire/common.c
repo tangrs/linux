@@ -62,6 +62,13 @@ static struct clk_lookup nspire_clk_lookup[] = {
 		.clk = &systimer_clk
 	},
 #endif
+#if defined(CONFIG_MACH_NSPIRECLP) || defined(CONFIG_MACH_NSPIRETP)
+	{
+		.dev_id = NULL,
+		.con_id = "timer2",
+		.clk = &systimer_clk
+	},
+#endif
 };
 
 /* Keypad */

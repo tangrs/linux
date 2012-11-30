@@ -474,9 +474,6 @@ config ARCH_NSPIRE
 	bool "TI-NSPIRE based"
 	depends on MMU
 	select CPU_ARM926T
-	select GENERIC_CLOCKEVENTS
-	select ARM_VIC
-	select ARM_TIMER_SP804
 	select HAVE_MACH_CLKDEV
 	select CLKDEV_LOOKUP
 	select ARM_AMBA

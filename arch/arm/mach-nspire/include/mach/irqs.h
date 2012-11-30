@@ -22,6 +22,6 @@ enum {
 	NSPIRE_IRQ_LCD = 21
 };
 
-#define NR_IRQS 64
+#define NR_IRQS 32
 
 #endif
