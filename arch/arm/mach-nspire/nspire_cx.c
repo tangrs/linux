@@ -129,6 +129,11 @@ static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 
 /************** USB HOST *************/
 
+static struct resource cx_hostusb_resources[] = {
+	RESOURCE_ENTRY_MEM(HOSTUSB),
+	RESOURCE_ENTRY_IRQ(OTG)
+};
+
 static __init int cx_usb_init(void)
 {
 	int err = 0;
@@ -151,6 +156,9 @@ static __init int cx_usb_init(void)
 	iounmap(hostusb_addr);
 
 	pr_info("Adding USB controller as platform device\n");
+
+	nspire_hostusb_device.resource = cx_hostusb_resources;
+	nspire_hostusb_device.num_resources = ARRAY_SIZE(cx_hostusb_resources);
 	err = platform_device_register(&nspire_hostusb_device);
 out:
 

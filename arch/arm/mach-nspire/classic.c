@@ -282,12 +282,24 @@ AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 	{ NSPIRE_IRQ_LCD }, &classic_clcd_data);
 
 
+/* USB */
+
+static struct resource classic_hostusb_resources[] = {
+	RESOURCE_ENTRY_MEM(HOSTUSB),
+	RESOURCE_ENTRY_IRQ(HOSTUSB)
+};
+
 /* Init */
 void __init nspire_classic_init(void)
 {
 	amba_device_register(&fb_device, &iomem_resource);
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&nspire_classic_serial_device);
+
+	nspire_hostusb_device.resource = classic_hostusb_resources;
+	nspire_hostusb_device.num_resources =
+		ARRAY_SIZE(classic_hostusb_resources);
+	platform_device_register(&nspire_hostusb_device);
 
 	nspire_init();
 }

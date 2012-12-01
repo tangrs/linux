@@ -136,17 +136,11 @@ static struct usb_ehci_pdata nspire_hostusb_pdata = {
 	.caps_offset = 0x100
 };
 
-static struct resource nspire_hostusb_resources[] = {
-	RESOURCE_ENTRY_MEM(HOSTUSB),
-	RESOURCE_ENTRY_IRQ(HOSTUSB)
-};
 static u64 nspire_usb_dma_mask = ~(u32)0;
 
 struct platform_device nspire_hostusb_device = {
 	.name		= "ehci-platform",
 	.id		= 0,
-	.num_resources	= ARRAY_SIZE(nspire_hostusb_resources),
-	.resource	= nspire_hostusb_resources,
 	.dev = {
 		.platform_data = &nspire_hostusb_pdata,
 		.coherent_dma_mask = ~0,
