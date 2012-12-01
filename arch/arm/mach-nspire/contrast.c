@@ -13,8 +13,10 @@
 #include <linux/proc_fs.h>
 
 #include <mach/nspire_mmio.h>
+#include <asm/mach-types.h>
 
-#define CONTRAST_PROCFS_NAME "backlight"
+#define CONTRAST_PROCFS_NAME_CX		"backlight"
+#define CONTRAST_PROCFS_NAME_CLASSIC	"contrast"
 
 static struct proc_dir_entry *contrast_proc_entry;
 
@@ -22,7 +24,7 @@ static int contrast_read(char *buf, char **data, off_t offset,
 	int len, int *eof, void *privdata)
 {
 	len = snprintf(buf, PAGE_SIZE, "Screen backlight is %d.\n",
-readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20)));
+		readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20)));
 	if (offset >= len) {
 		*eof = 1;
 		return 0;
@@ -46,16 +48,21 @@ static int contrast_write(struct file *file, const char __user *buffer,
 
 int __init contrast_procfs_init(void)
 {
-	contrast_proc_entry = create_proc_entry(CONTRAST_PROCFS_NAME,
-		0644, NULL);
+	const char *name;
+
+	if (machine_is_nspirecx())
+		name = CONTRAST_PROCFS_NAME_CX;
+	else
+		name = CONTRAST_PROCFS_NAME_CLASSIC;
+
+	contrast_proc_entry = create_proc_entry(name, 0644, NULL);
 	if (!contrast_proc_entry) {
-		pr_alert("Error: Could not initialize /proc/%s\n",
-		       CONTRAST_PROCFS_NAME);
+		pr_alert("Error: Could not initialize /proc/%s\n", name);
 		return -ENOMEM;
 	}
 
-	contrast_proc_entry->read_proc  = contrast_read;
+	contrast_proc_entry->read_proc	= contrast_read;
 	contrast_proc_entry->write_proc = contrast_write;
-	pr_info("Contrast settings mapped to /proc/%s\n", CONTRAST_PROCFS_NAME);
+	pr_info("Contrast settings mapped to /proc/%s\n", name);
 	return 0;
 }

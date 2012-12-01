@@ -13,6 +13,10 @@
 #include <linux/clkdev.h>
 #include <linux/platform_device.h>
 #include <linux/usb/ehci_pdriver.h>
+#include <linux/amba/bus.h>
+#include <linux/amba/clcd.h>
+#include <linux/dma-mapping.h>
+
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -92,6 +96,39 @@ struct platform_device nspire_keypad_device = {
 		.platform_data = &nspire_keypad_data
 	}
 };
+
+/* Framebuffer */
+int nspire_clcd_setup(struct clcd_fb *fb, unsigned panel_size,
+	struct clcd_panel *panel)
+{
+	dma_addr_t dma;
+
+	fb->fb.screen_base = dma_alloc_writecombine(&fb->dev->dev,
+		panel_size, &dma, GFP_KERNEL);
+	if (!fb->fb.screen_base) {
+		pr_err("CLCD: unable to map framebuffer\n");
+		return -ENOMEM;
+	}
+
+	fb->fb.fix.smem_start = dma;
+	fb->fb.fix.smem_len = panel_size;
+	fb->panel = panel;
+
+	return 0;
+}
+
+int nspire_clcd_mmap(struct clcd_fb *fb, struct vm_area_struct *vma)
+{
+	return dma_mmap_writecombine(&fb->dev->dev, vma,
+		fb->fb.screen_base, fb->fb.fix.smem_start,
+		fb->fb.fix.smem_len);
+}
+
+void nspire_clcd_remove(struct clcd_fb *fb)
+{
+	dma_free_writecombine(&fb->dev->dev, fb->fb.fix.smem_len,
+		fb->fb.screen_base, fb->fb.fix.smem_start);
+}
 
 /* USB HOST */
 static struct usb_ehci_pdata nspire_hostusb_pdata = {

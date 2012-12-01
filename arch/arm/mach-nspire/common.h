@@ -43,3 +43,8 @@ void __init nspire_init(void);
 void __init nspire_init_late(void);
 
 void nspire_restart(char mode, const char *cmd);
+
+int nspire_clcd_mmap(struct clcd_fb *fb, struct vm_area_struct *vma);
+void nspire_clcd_remove(struct clcd_fb *fb);
+int nspire_clcd_setup(struct clcd_fb *fb, unsigned panel_size,
+	struct clcd_panel * panel);

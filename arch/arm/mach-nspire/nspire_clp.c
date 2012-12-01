@@ -42,6 +42,6 @@ MACHINE_START(NSPIRECLP, "TI-NSPIRE Clickpad Calculator")
 	.timer		= &nspire_classic_sys_timer,
 	.init_early		= nspire_init_early,
 	.init_machine	= nspire_init,
-	.init_late	= nspire_init_late,
+	.init_late	= nspire_classic_init_late,
 	.restart	= nspire_restart,
 MACHINE_END

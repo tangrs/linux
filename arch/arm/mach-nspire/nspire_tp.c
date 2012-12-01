@@ -52,6 +52,6 @@ MACHINE_START(NSPIRETP, "TI-NSPIRE Touchpad Calculator")
 	.handle_irq = nspire_classic_handle_irq,
 	.init_early		= nspire_init_early,
 	.init_machine	= tp_init,
-	.init_late	= nspire_init_late,
+	.init_late	= nspire_classic_init_late,
 	.restart	= nspire_restart,
 MACHINE_END

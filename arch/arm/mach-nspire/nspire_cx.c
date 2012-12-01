@@ -84,33 +84,7 @@ static struct clcd_panel cx_lcd_panel = {
 
 static int cx_clcd_setup(struct clcd_fb *fb)
 {
-	dma_addr_t dma;
-
-	fb->fb.screen_base = dma_alloc_writecombine(&fb->dev->dev,
-		PANEL_SIZE, &dma, GFP_KERNEL);
-	if (!fb->fb.screen_base) {
-		pr_err("CLCD: unable to map framebuffer\n");
-		return -ENOMEM;
-	}
-
-	fb->fb.fix.smem_start = dma;
-	fb->fb.fix.smem_len = PANEL_SIZE;
-	fb->panel = &cx_lcd_panel;
-
-	return 0;
-}
-
-static int cx_clcd_mmap(struct clcd_fb *fb, struct vm_area_struct *vma)
-{
-	return dma_mmap_writecombine(&fb->dev->dev, vma,
-		fb->fb.screen_base, fb->fb.fix.smem_start,
-		fb->fb.fix.smem_len);
-}
-
-static void cx_clcd_remove(struct clcd_fb *fb)
-{
-	dma_free_writecombine(&fb->dev->dev, fb->fb.fix.smem_len,
-		fb->fb.screen_base, fb->fb.fix.smem_start);
+	return nspire_clcd_setup(fb, PANEL_SIZE, &cx_lcd_panel);
 }
 
 /*Own function to check, as we need to work around a bug(?) in clcdfb_check*/
@@ -146,8 +120,8 @@ static struct clcd_board cx_clcd_data = {
 	.check		= cx_clcd_check,
 	.decode		= clcdfb_decode,
 	.setup		= cx_clcd_setup,
-	.mmap		= cx_clcd_mmap,
-	.remove		= cx_clcd_remove,
+	.mmap		= nspire_clcd_mmap,
+	.remove		= nspire_clcd_remove,
 };
 
 static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,

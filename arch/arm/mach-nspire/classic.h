@@ -13,6 +13,7 @@
 
 void __init nspire_classic_init_irq(void);
 void __init nspire_classic_init(void);
+void __init nspire_classic_init_late(void);
 asmlinkage void __exception_irq_entry
     nspire_classic_handle_irq(struct pt_regs *regs);
 

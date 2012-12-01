@@ -18,6 +18,9 @@
 #include <linux/cpumask.h>
 #include <linux/serial_8250.h>
 #include <linux/platform_device.h>
+#include <linux/amba/bus.h>
+#include <linux/amba/clcd.h>
+#include <linux/dma-mapping.h>
 
 #include <asm/mach/time.h>
 #include <asm/exception.h>
@@ -237,11 +240,62 @@ struct platform_device nspire_classic_serial_device = {
 	}
 };
 
+/* Framebuffer */
+static struct clcd_panel classic_lcd_panel = {
+	.mode		= {
+		.name		= "grayscale lcd",
+		.refresh	= 60,
+		.xres		= 320,
+		.yres		= 240,
+		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+		.vmode		= FB_VMODE_NONINTERLACED,
+		.pixclock	= 1,
+		.hsync_len	= 1,
+		.vsync_len	= 1,
+		.right_margin	= 1,
+		.left_margin	= 1,
+	},
+	.width		= 320,
+	.height		= 240,
+	.tim2		= 0xd0,
+	.cntl		= CNTL_LCDBPP4 | CNTL_LCDMONO8,
+	.bpp		= 4,
+	.grayscale	= 1
+};
+#define PANEL_SIZE 38400
+
+static int classic_clcd_setup(struct clcd_fb *fb)
+{
+	return nspire_clcd_setup(fb, PANEL_SIZE, &classic_lcd_panel);
+}
+
+static struct clcd_board classic_clcd_data = {
+	.name		= "lcd controller",
+	.check		= clcdfb_check,
+	.decode		= clcdfb_decode,
+	.setup		= classic_clcd_setup,
+	.mmap		= nspire_clcd_mmap,
+	.remove		= nspire_clcd_remove,
+};
+
+AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
+	{ NSPIRE_IRQ_LCD }, &classic_clcd_data);
+
+
 /* Init */
 void __init nspire_classic_init(void)
 {
+	amba_device_register(&fb_device, &iomem_resource);
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&nspire_classic_serial_device);
 
 	nspire_init();
+}
+
+void __init nspire_classic_init_late(void)
+{
+	/* Set saner contrast */
+	writel(140, NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20));
+	pr_info("Contrast set to 140\n");
+	nspire_init_late();
 }
