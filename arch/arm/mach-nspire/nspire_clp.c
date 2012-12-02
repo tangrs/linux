@@ -36,12 +36,19 @@
 #include "common.h"
 #include "classic.h"
 
+static void __init clp_init(void)
+{
+	nspire_keypad_data.evtcodes = nspire_clickpad_evtcode_map;
+	nspire_classic_init();
+}
+
 MACHINE_START(NSPIRECLP, "TI-NSPIRE Clickpad Calculator")
 	.map_io		= nspire_map_io,
 	.init_irq	= nspire_classic_init_irq,
 	.timer		= &nspire_classic_sys_timer,
+	.handle_irq = nspire_classic_handle_irq,
 	.init_early		= nspire_init_early,
-	.init_machine	= nspire_init,
+	.init_machine	= clp_init,
 	.init_late	= nspire_classic_init_late,
 	.restart	= nspire_restart,
 MACHINE_END

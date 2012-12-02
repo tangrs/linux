@@ -17,5 +17,6 @@ struct nspire_keypad_data {
 };
 
 extern unsigned int nspire_touchpad_evtcode_map[][11];
+extern unsigned int nspire_clickpad_evtcode_map[][11];
 
 #endif
