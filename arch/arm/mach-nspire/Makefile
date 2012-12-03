@@ -4,6 +4,7 @@ obj-y				+= common.o
 obj-y				+= clock.o
 obj-y				+= boot1.o
 obj-y				+= contrast.o
+obj-y				+= adc.o
 obj-y				+= sram.o
 obj-y				+= keypad.o
 

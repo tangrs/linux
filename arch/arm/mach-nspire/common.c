@@ -27,7 +27,7 @@
 #include <asm/mach/time.h>
 #include <asm/mach/map.h>
 
-
+#include "adc.h"
 #include "common.h"
 #include "boot1.h"
 #include "contrast.h"
@@ -150,6 +150,7 @@ struct platform_device nspire_hostusb_device = {
 
 /* Memory mapped IO */
 struct map_desc nspire_io_regs[] __initdata = {
+	IOTABLE_ENTRY(ADC),
 	IOTABLE_ENTRY(APB),
 	IOTABLE_ENTRY(BOOT1),
 	IOTABLE_ENTRY(INTERRUPT),
@@ -169,11 +170,13 @@ void __init nspire_init_early(void)
 /* Common init */
 void __init nspire_init(void)
 {
+	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
 }
 
 void __init nspire_init_late(void)
 {
+	adc_procfs_init();
 	boot1_procfs_init();
 	contrast_procfs_init();
 }
