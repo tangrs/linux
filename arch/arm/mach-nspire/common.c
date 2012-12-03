@@ -48,7 +48,7 @@ static struct clk ahb_clk = {
 
 static struct clk_lookup nspire_clk_lookup[] = {
 	{
-		.dev_id = "uart0",
+		.dev_id = "uart",
 		.clk = &uart_clk
 	},
 	{

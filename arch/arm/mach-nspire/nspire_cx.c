@@ -45,7 +45,7 @@ static void __init cx_init_irq(void)
 
 /**************** UART **************/
 
-static AMBA_APB_DEVICE(uart, "uart0", 0, NSPIRE_APB_PHYS(NSPIRE_APB_UART),
+static AMBA_APB_DEVICE(uart, "uart", 0, NSPIRE_APB_PHYS(NSPIRE_APB_UART),
 	{ NSPIRE_IRQ_UART }, NULL);
 
 /**************** TIMER ****************/
@@ -211,9 +211,9 @@ void __init cx_init_late(void)
 MACHINE_START(NSPIRECX, "TI-NSPIRE CX Calculator")
 	.map_io		= nspire_map_io,
 	.init_irq	= cx_init_irq,
-	.handle_irq = vic_handle_irq,
+	.handle_irq	= vic_handle_irq,
 	.timer		= &cx_sys_timer,
-	.init_early		= nspire_init_early,
+	.init_early	= nspire_init_early,
 	.init_machine	= cx_init,
 	.init_late	= cx_init_late,
 	.restart	= nspire_restart,
