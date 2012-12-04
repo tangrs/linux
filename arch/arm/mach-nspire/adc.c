@@ -31,9 +31,10 @@ static int adc_read(char *buf, char **data, off_t offset,
 	uint8_t channel;
 	/*Refresh only every 100ms; that's enough*/
 	if (last_refresh + HZ/10 < jiffies || last_refresh == 0) {
+		void __iomem *chnl_base = IOMEM(NSPIRE_ADC_VIRT_BASE + 0x100);
 		/*Start measurement*/
 		for (channel = 0; channel < NR_ADC_CHANNELS; channel++)
-			writel(1, IOMEM(NSPIRE_ADC_VIRT_BASE + 0x100 + (0x20*channel)));
+			writel(1, chnl_base + (0x20*channel));
 
 		/* Wait a millisecond, better then waiting until it
 		 * finishes, because we could wait forever, if something is not
@@ -45,7 +46,7 @@ static int adc_read(char *buf, char **data, off_t offset,
 		last_refresh = jiffies;
 
 		for (channel = 0; channel < NR_ADC_CHANNELS; channel++)
-			adc[channel] = readl(IOMEM(NSPIRE_ADC_VIRT_BASE + 0x110 + (0x20*channel)));
+			adc[channel] = readl(chnl_base + (0x20*channel));
 	}
 
 	len = snprintf(buf, PAGE_SIZE, "ADC0(LBAT)	%d\n"
