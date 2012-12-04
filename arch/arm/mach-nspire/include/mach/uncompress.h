@@ -14,21 +14,22 @@
 
 #include <mach/nspire_mmio.h>
 
-
 #define OFFSET_VAL(var, offset) ((var)[(offset)>>2])
 static inline void putc(int c)
 {
-	volatile unsigned *serial_base = (volatile unsigned *)
-		NSPIRE_APB_PHYS(NSPIRE_APB_UART);
+	volatile unsigned __attribute__((unused)) *serial_base =
+		(volatile unsigned *) NSPIRE_APB_PHYS(NSPIRE_APB_UART);
 
 #ifdef CONFIG_NSPIRE_EARLYPRINTK_CLASSIC
 	OFFSET_VAL(serial_base, 0x00) = (unsigned char)c;
 	while (! (OFFSET_VAL(serial_base, 0x14) & (1<<5)) ) barrier();
+	#error
 #endif
 
 #ifdef CONFIG_NSPIRE_EARLYPRINTK_CX
 	OFFSET_VAL(serial_base, 0x00) = (unsigned char)c;
 	while (OFFSET_VAL(serial_base, 0x18) & (1<<5)) barrier();
+	#error
 #endif
 
 }
