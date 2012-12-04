@@ -23,13 +23,11 @@ static inline void putc(int c)
 #ifdef CONFIG_NSPIRE_EARLYPRINTK_CLASSIC
 	OFFSET_VAL(serial_base, 0x00) = (unsigned char)c;
 	while (! (OFFSET_VAL(serial_base, 0x14) & (1<<5)) ) barrier();
-	#error
 #endif
 
 #ifdef CONFIG_NSPIRE_EARLYPRINTK_CX
 	OFFSET_VAL(serial_base, 0x00) = (unsigned char)c;
 	while (OFFSET_VAL(serial_base, 0x18) & (1<<5)) barrier();
-	#error
 #endif
 
 }
