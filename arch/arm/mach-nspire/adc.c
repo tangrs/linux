@@ -46,7 +46,7 @@ static int adc_read(char *buf, char **data, off_t offset,
 		last_refresh = jiffies;
 
 		for (channel = 0; channel < NR_ADC_CHANNELS; channel++)
-			adc[channel] = readl(chnl_base + (0x20*channel));
+			adc[channel] = readl(chnl_base + 0x10 + (0x20*channel));
 	}
 
 	len = snprintf(buf, PAGE_SIZE, "ADC0(LBAT)	%d\n"
