@@ -15,8 +15,9 @@
 #include <linux/usb/ehci_pdriver.h>
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
+#include <linux/i2c-gpio.h>
+#include <linux/platform_data/gpio-nspire.h>
 #include <linux/dma-mapping.h>
-
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -167,11 +168,60 @@ void __init nspire_init_early(void)
 	clkdev_add_table(nspire_clk_lookup, ARRAY_SIZE(nspire_clk_lookup));
 }
 
+#ifdef CONFIG_GPIO_NSPIRE
+/* GPIO */
+static struct resource nspire_gpio_resources[] = {
+	{
+		.start	= NSPIRE_APB_PHYS(NSPIRE_APB_GPIO),
+		.end	= NSPIRE_APB_PHYS(NSPIRE_APB_GPIO + SZ_4K - 1),
+		.flags	= IORESOURCE_MEM,
+	},
+	RESOURCE_ENTRY_IRQ(GPIO)
+};
+
+static struct nspire_gpio_data nspire_gpio_data = {
+	.ngpio		= 32,
+	.irq_base	= 32,
+};
+
+static struct platform_device nspire_gpio_device = {
+	.name 		= "gpio-nspire",
+	.resource	= nspire_gpio_resources,
+	.num_resources	= ARRAY_SIZE(nspire_gpio_resources),
+	.dev = {
+		.platform_data = &nspire_gpio_data,
+	}
+};
+
+#ifdef CONFIG_I2C_GPIO
+/* I2C */
+static struct i2c_gpio_platform_data i2c_gpio_data = {
+	.sda_pin		= 3,
+	.scl_pin		= 1,
+};
+
+static struct platform_device i2c_gpio_device = {
+	.name		= "i2c-gpio",
+	.id		= 0,
+	.dev		= {
+		.platform_data	= &i2c_gpio_data,
+	},
+};
+#endif /* CONFIG_I2C_GPIO */
+
+#endif /* CONFIG_GPIO_NSPIRE */
+
 /* Common init */
 void __init nspire_init(void)
 {
 	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
+#ifdef CONFIG_GPIO_NSPIRE
+	platform_device_register(&nspire_gpio_device);
+#ifdef CONFIG_I2C_GPIO
+ 	platform_device_register(&i2c_gpio_device);
+#endif
+#endif
 }
 
 void __init nspire_init_late(void)

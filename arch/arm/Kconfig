@@ -478,6 +478,7 @@ config ARCH_NSPIRE
 	select CLKDEV_LOOKUP
 	select ARM_AMBA
 	select USB_ARCH_HAS_EHCI
+	select ARCH_WANT_OPTIONAL_GPIOLIB
 	select GENERIC_ALLOCATOR
 	help
 	  This enables support for systems using the TI-NSPIRE CPU
