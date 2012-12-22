@@ -213,7 +213,7 @@ static int fimc_pipeline_close(struct fimc_pipeline *p)
  * @pipeline: video pipeline structure
  * @on: passed as the s_stream call argument
  */
-int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
+static int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
 {
 	int i, ret;
 
@@ -352,6 +352,7 @@ static int fimc_register_callback(struct device *dev, void *p)
 
 	sd = &fimc->vid_cap.subdev;
 	sd->grp_id = FIMC_GROUP_ID;
+	v4l2_set_subdev_hostdata(sd, (void *)&fimc_pipeline_ops);
 
 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
 	if (ret) {
@@ -360,7 +361,6 @@ static int fimc_register_callback(struct device *dev, void *p)
 		return ret;
 	}
 
-	fimc->pipeline_ops = &fimc_pipeline_ops;
 	fmd->fimc[fimc->id] = fimc;
 	return 0;
 }
@@ -375,6 +375,7 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
 		return 0;
 
 	fimc->subdev.grp_id = FLITE_GROUP_ID;
+	v4l2_set_subdev_hostdata(&fimc->subdev, (void *)&fimc_pipeline_ops);
 
 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, &fimc->subdev);
 	if (ret) {
@@ -384,7 +385,6 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
 		return ret;
 	}
 
-	fimc->pipeline_ops = &fimc_pipeline_ops;
 	fmd->fimc_lite[fimc->index] = fimc;
 	return 0;
 }
@@ -547,7 +547,7 @@ static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
 		if (ret)
 			break;
 
-		v4l2_info(&fmd->v4l2_dev, "created link [%s] %c> [%s]",
+		v4l2_info(&fmd->v4l2_dev, "created link [%s] %c> [%s]\n",
 			  source->name, flags ? '=' : '-', sink->name);
 
 		if (flags == 0 || sensor == NULL)
