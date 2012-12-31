@@ -209,6 +209,7 @@ void __init cx_init_late(void)
 }
 
 MACHINE_START(NSPIRECX, "TI-NSPIRE CX Calculator")
+	.nr_irqs	= NR_IRQS,
 	.map_io		= nspire_map_io,
 	.init_irq	= cx_init_irq,
 	.handle_irq	= vic_handle_irq,
