@@ -3273,6 +3273,16 @@ F:	Documentation/filesystems/caching/
 F:	fs/fscache/
 F:	include/linux/fscache*.h
 
+F2FS FILE SYSTEM
+M:	Jaegeuk Kim <jaegeuk.kim@samsung.com>
+L:	linux-f2fs-devel@lists.sourceforge.net
+W:	http://en.wikipedia.org/wiki/F2FS
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jaegeuk/f2fs.git
+S:	Maintained
+F:	Documentation/filesystems/f2fs.txt
+F:	fs/f2fs/
+F:	include/linux/f2fs_fs.h
+
 FUJITSU FR-V (FRV) PORT
 M:	David Howells <dhowells@redhat.com>
 S:	Maintained
@@ -5384,6 +5394,15 @@ S:	Maintained
 F:	arch/arm/*omap*/
 F:	drivers/i2c/busses/i2c-omap.c
 F:	include/linux/i2c-omap.h
+
+OMAP DEVICE TREE SUPPORT
+M:	Benoît Cousson <b-cousson@ti.com>
+M:	Tony Lindgren <tony@atomide.com>
+L:	linux-omap@vger.kernel.org
+L:	devicetree-discuss@lists.ozlabs.org (moderated for non-subscribers)
+S:	Maintained
+F:	arch/arm/boot/dts/*omap*
+F:	arch/arm/boot/dts/*am3*
 
 OMAP CLOCK FRAMEWORK SUPPORT
 M:	Paul Walmsley <paul@pwsan.com>
