@@ -189,8 +189,9 @@ config GPIO_MXS
 	select GENERIC_IRQ_CHIP
 
 config GPIO_NSPIRE
+	bool "TI-NSPIRE GPIO support"
 	def_bool y
-	depends on ARCH_NSPIRE
+	depends on ARCH_NSPIRE && EXPERIMENTAL
 	select GENERIC_IRQ_CHIP
 
 config GPIO_PL061

@@ -1,7 +1,11 @@
 #ifndef _TOOLS_BE_BYTESHIFT_H
 #define _TOOLS_BE_BYTESHIFT_H
 
+#if defined(__APPLE__)
+#include "apple_linux_types.h"
+#else
 #include <linux/types.h>
+#endif
 
 static inline __u16 __get_unaligned_be16(const __u8 *p)
 {
