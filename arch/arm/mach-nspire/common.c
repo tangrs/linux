@@ -17,7 +17,6 @@
 #include <linux/amba/clcd.h>
 #include <linux/dma-mapping.h>
 
-
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
 #include <mach/clkdev.h>
@@ -97,6 +96,23 @@ struct platform_device nspire_keypad_device = {
 	}
 };
 
+
+/* GPIO */
+static struct resource nspire_gpio_resources[] = {
+	{
+		.start	= NSPIRE_APB_PHYS(NSPIRE_APB_GPIO),
+		.end	= NSPIRE_APB_PHYS(NSPIRE_APB_GPIO + SZ_4K - 1),
+		.flags	= IORESOURCE_MEM,
+	},
+	RESOURCE_ENTRY_IRQ(GPIO)
+};
+
+static struct platform_device nspire_gpio_device = {
+	.name		= "gpio-nspire",
+	.resource	= nspire_gpio_resources,
+	.num_resources	= ARRAY_SIZE(nspire_gpio_resources),
+};
+
 /* Framebuffer */
 int nspire_clcd_setup(struct clcd_fb *fb, unsigned panel_size,
 	struct clcd_panel *panel)
@@ -172,6 +188,7 @@ void __init nspire_init(void)
 {
 	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
+	platform_device_register(&nspire_gpio_device);
 }
 
 void __init nspire_init_late(void)
