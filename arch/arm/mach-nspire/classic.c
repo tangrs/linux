@@ -284,9 +284,9 @@ AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 
 /* USB */
 
-static struct resource classic_hostusb_resources[] = {
+static struct resource classic_usb_resources[] = {
 	RESOURCE_ENTRY_MEM(HOSTUSB),
-	RESOURCE_ENTRY_IRQ(HOSTUSB)
+	RESOURCE_ENTRY_IRQ(OTG)
 };
 
 /* Init */
@@ -296,10 +296,9 @@ void __init nspire_classic_init(void)
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&nspire_classic_serial_device);
 
-	nspire_hostusb_device.resource = classic_hostusb_resources;
-	nspire_hostusb_device.num_resources =
-		ARRAY_SIZE(classic_hostusb_resources);
-	platform_device_register(&nspire_hostusb_device);
+	nspire_usb_device.resource = classic_usb_resources;
+	nspire_usb_device.num_resources = ARRAY_SIZE(classic_usb_resources);
+	platform_device_register(&nspire_usb_device);
 
 	nspire_init();
 }
