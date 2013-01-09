@@ -169,6 +169,10 @@ struct platform_device nspire_usb_device = {
 	}
 };
 
+struct platform_device nspire_nop_xceiver = {
+	.name		= "nop_usb_xceiv",
+};
+
 /* Memory mapped IO */
 struct map_desc nspire_io_regs[] __initdata = {
 	IOTABLE_ENTRY(ADC),
@@ -194,6 +198,7 @@ void __init nspire_init(void)
 	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
 	platform_device_register(&nspire_gpio_device);
+	platform_device_register(&nspire_nop_xceiver);
 }
 
 void __init nspire_init_late(void)
