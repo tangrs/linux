@@ -12,7 +12,11 @@
 #include <linux/init.h>
 #include <linux/clkdev.h>
 #include <linux/platform_device.h>
-#include <linux/usb/ehci_pdriver.h>
+#include <linux/usb/chipidea.h>
+#include <linux/usb/ulpi.h>
+#include <linux/usb/phy.h>
+
+
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
 #include <linux/dma-mapping.h>
@@ -146,22 +150,35 @@ void nspire_clcd_remove(struct clcd_fb *fb)
 		fb->fb.screen_base, fb->fb.fix.smem_start);
 }
 
-/* USB HOST */
-static struct usb_ehci_pdata nspire_hostusb_pdata = {
-	.has_tt = 1,
-	.caps_offset = 0x100
+/* USB */
+
+static struct resource otg_resources[] = {
+	RESOURCE_ENTRY_MEM(OTGUSB),
+	RESOURCE_ENTRY_IRQ(OTG)
 };
 
-static u64 nspire_usb_dma_mask = ~(u32)0;
+static struct ci13xxx_platform_data otg_pdata = {
+	.name = "nspire_usb",
+	.capoffset = 0x100,
+	.flags = CI13XXX_REGS_SHARED,
+};
 
-struct platform_device nspire_hostusb_device = {
-	.name		= "ehci-platform",
+static u64 usb_dma_mask = ~(u32)0;
+
+static struct platform_device otg_device = {
+	.name		= "ci_hdrc",
 	.id		= 0,
 	.dev = {
-		.platform_data = &nspire_hostusb_pdata,
+		.platform_data = &otg_pdata,
 		.coherent_dma_mask = ~0,
-		.dma_mask = &nspire_usb_dma_mask
-	}
+		.dma_mask = &usb_dma_mask
+	},
+	.resource = otg_resources,
+	.num_resources = ARRAY_SIZE(otg_resources)
+};
+
+static struct platform_device usb_nop_xceiver = {
+	.name		= "nop_usb_xceiv",
 };
 
 /* RTC */
@@ -211,6 +228,8 @@ void __init nspire_init(void)
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
 	platform_device_register(&nspire_gpio_device);
 	platform_device_register(&nspire_rtc_device);
+	platform_device_register(&otg_device);
+	platform_device_register(&usb_nop_xceiver);
 }
 
 void __init nspire_init_late(void)
