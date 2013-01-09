@@ -33,9 +33,6 @@
 	}
 
 extern struct platform_device nspire_keypad_device;
-extern struct platform_device nspire_usb_device;
-extern struct platform_device nspire_nop_xceiver;
-
 extern struct nspire_keypad_data nspire_keypad_data;
 
 void __init nspire_map_io(void);

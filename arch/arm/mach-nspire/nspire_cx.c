@@ -129,11 +129,6 @@ static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 
 /************** USB *************/
 
-static struct resource cx_usb_resources[] = {
-	RESOURCE_ENTRY_MEM(HOSTUSB),
-	RESOURCE_ENTRY_IRQ(OTG)
-};
-
 static __init int cx_usb_workaround(void)
 {
 	int err = 0;
@@ -168,10 +163,6 @@ void __init cx_init(void)
 
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);
-
-	nspire_usb_device.resource = cx_usb_resources;
-	nspire_usb_device.num_resources = ARRAY_SIZE(cx_usb_resources);
-	platform_device_register(&nspire_usb_device);
 }
 
 void __init cx_init_late(void)
