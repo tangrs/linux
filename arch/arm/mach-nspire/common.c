@@ -164,6 +164,23 @@ struct platform_device nspire_hostusb_device = {
 	}
 };
 
+/* RTC */
+static struct resource nspire_rtc_resources[] = {
+	{
+		.start	= NSPIRE_APB_PHYS(NSPIRE_APB_RTC),
+		.end	= NSPIRE_APB_PHYS(NSPIRE_APB_RTC + SZ_4K - 1),
+		.flags	= IORESOURCE_MEM,
+	},
+	RESOURCE_ENTRY_IRQ(RTC)
+};
+
+static struct platform_device nspire_rtc_device = {
+	.name		= "nspire-rtc",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(nspire_rtc_resources),
+	.resource	= nspire_rtc_resources,
+};
+
 /* Memory mapped IO */
 struct map_desc nspire_io_regs[] __initdata = {
 	IOTABLE_ENTRY(ADC),
@@ -193,6 +210,7 @@ void __init nspire_init(void)
 	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
 	platform_device_register(&nspire_gpio_device);
+	platform_device_register(&nspire_rtc_device);
 }
 
 void __init nspire_init_late(void)
