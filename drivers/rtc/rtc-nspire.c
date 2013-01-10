@@ -33,7 +33,8 @@ struct nspire_rtc_pdata {
 	unsigned char alarm_enabled:1;
 };
 
-static int nspire_rtc_read_time(struct device *dev, struct rtc_time *tm) {
+static int nspire_rtc_read_time(struct device *dev, struct rtc_time *tm)
+{
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 	unsigned long rtc_time = readl(pdata->iobase + RTC_CURR);
@@ -44,7 +45,8 @@ static int nspire_rtc_read_time(struct device *dev, struct rtc_time *tm) {
 	return 0;
 }
 
-static int nspire_rtc_set_time(struct device *dev, struct rtc_time *tm) {
+static int nspire_rtc_set_time(struct device *dev, struct rtc_time *tm)
+{
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 	unsigned long rtc_time;
@@ -56,7 +58,8 @@ static int nspire_rtc_set_time(struct device *dev, struct rtc_time *tm) {
 	return 0;
 }
 
-static int nspire_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *a) {
+static int nspire_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *a)
+{
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 	unsigned long rtc_time = pdata->alarm;
@@ -67,7 +70,8 @@ static int nspire_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *a) {
 	return 0;
 }
 
-static int nspire_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *a) {
+static int nspire_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *a)
+{
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 	unsigned long rtc_time;
@@ -78,7 +82,8 @@ static int nspire_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *a) {
 	return 0;
 }
 
-static int nspire_rtc_alarm_enable(struct device *dev, unsigned int enabled) {
+static int nspire_rtc_alarm_enable(struct device *dev, unsigned int enabled)
+{
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 
@@ -97,7 +102,8 @@ static int nspire_rtc_alarm_enable(struct device *dev, unsigned int enabled) {
 	return 0;
 }
 
-static void nspire_rtc_release(struct device *dev) {
+static void nspire_rtc_release(struct device *dev)
+{
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 
@@ -110,7 +116,7 @@ static void nspire_rtc_release(struct device *dev) {
 
 
 static struct rtc_class_ops nspire_rtc_ops = {
-	.read_time 	= nspire_rtc_read_time,
+	.read_time	= nspire_rtc_read_time,
 	.set_time	= nspire_rtc_set_time,
 	.read_alarm	= nspire_rtc_read_alarm,
 	.set_alarm	= nspire_rtc_set_alarm,
@@ -118,7 +124,8 @@ static struct rtc_class_ops nspire_rtc_ops = {
 	.release	= nspire_rtc_release
 };
 
-static irqreturn_t nspire_rtc_irq(int irq, void *dev_id) {
+static irqreturn_t nspire_rtc_irq(int irq, void *dev_id)
+{
 	struct nspire_rtc_pdata *pdata = dev_id;
 
 	/* Acknowledge */
