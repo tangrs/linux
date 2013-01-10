@@ -679,6 +679,7 @@ config RTC_DRV_MSM6242
 
 config RTC_DRV_NSPIRE
 	tristate "TI-NSPIRE RTC"
+	depends on EXPERIMENTAL
 	help
 	  If you say yes here you get support for the RTC found in TI-NSPIRE
 	  calculators.

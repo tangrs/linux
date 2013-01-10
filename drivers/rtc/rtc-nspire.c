@@ -29,6 +29,8 @@ struct nspire_rtc_pdata {
 	int irq;
 
 	struct rtc_device *rtc;
+	unsigned long alarm;
+	unsigned char alarm_enabled:1;
 };
 
 static int nspire_rtc_read_time(struct device *dev, struct rtc_time *tm) {
@@ -36,6 +38,7 @@ static int nspire_rtc_read_time(struct device *dev, struct rtc_time *tm) {
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 	unsigned long rtc_time = readl(pdata->iobase + RTC_CURR);
 
+	/* dev_info(&pdev->dev, "read time as %lu\n", rtc_time); */
 	rtc_time_to_tm(rtc_time, tm);
 
 	return 0;
@@ -47,6 +50,7 @@ static int nspire_rtc_set_time(struct device *dev, struct rtc_time *tm) {
 	unsigned long rtc_time;
 
 	rtc_tm_to_time(tm, &rtc_time);
+	/* dev_info(&pdev->dev, "set time to %lu\n", rtc_time); */
 	writel(rtc_time, pdata->iobase + RTC_SET);
 
 	return 0;
@@ -55,11 +59,10 @@ static int nspire_rtc_set_time(struct device *dev, struct rtc_time *tm) {
 static int nspire_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *a) {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
-	unsigned long rtc_time = readl(pdata->iobase + RTC_ALRM);
+	unsigned long rtc_time = pdata->alarm;
 
 	rtc_time_to_tm(rtc_time, &a->time);
 	a->pending = readl(pdata->iobase + RTC_INTSTS);
-	a->enabled = readl(pdata->iobase + RTC_INTMSK);
 
 	return 0;
 }
@@ -70,7 +73,7 @@ static int nspire_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *a) {
 	unsigned long rtc_time;
 
 	rtc_tm_to_time(&a->time, &rtc_time);
-	writel(rtc_time, pdata->iobase + RTC_ALRM);
+	pdata->alarm = rtc_time;
 
 	return 0;
 }
@@ -79,7 +82,18 @@ static int nspire_rtc_alarm_enable(struct device *dev, unsigned int enabled) {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 
-	writel(!!enabled, pdata->iobase + RTC_INTMSK);
+	/* Acknowledge existing interrupts */
+	writel(1, pdata->iobase + RTC_INTSTS);
+
+	if (!enabled) {
+		/* Write a value that is "impossible" to reach */
+		writel(-1, pdata->iobase + RTC_ALRM);
+		pdata->alarm_enabled = 0;
+	} else {
+		writel(pdata->alarm, pdata->iobase + RTC_ALRM);
+		pdata->alarm_enabled = 1;
+	}
+
 	return 0;
 }
 
@@ -87,8 +101,9 @@ static void nspire_rtc_release(struct device *dev) {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nspire_rtc_pdata *pdata = platform_get_drvdata(pdev);
 
-	/* Interrupts off */
-	writel(0, pdata->iobase + RTC_INTMSK);
+	pdata->alarm_enabled = 0;
+	/* Disable alarm by writing impossible value */
+	writel(-1, pdata->iobase + RTC_ALRM);
 	/* Acknowledge existing interrupts */
 	writel(1, pdata->iobase + RTC_INTSTS);
 }
@@ -108,7 +123,8 @@ static irqreturn_t nspire_rtc_irq(int irq, void *dev_id) {
 
 	/* Acknowledge */
 	writel(1, pdata->iobase + RTC_INTSTS);
-	rtc_update_irq(pdata->rtc, 1, (RTC_IRQF | RTC_AF));
+	if (!pdata->alarm_enabled)
+		rtc_update_irq(pdata->rtc, 1, (RTC_IRQF | RTC_AF));
 
 	return IRQ_HANDLED;
 }
@@ -135,8 +151,8 @@ static int nspire_rtc_probe(struct platform_device *pdev)
 	pdata->iobase = devm_ioremap(&pdev->dev, res->start,
 				     resource_size(res));
 
-	/* Default to interrupts off */
-	writel(0, pdata->iobase + RTC_INTMSK);
+	/* Interrupt mask needs to be always on for the clock to tick */
+	writel(1, pdata->iobase + RTC_INTMSK);
 	/* Acknowledge existing interrupts */
 	writel(1, pdata->iobase + RTC_INTSTS);
 
