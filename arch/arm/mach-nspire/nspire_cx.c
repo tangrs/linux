@@ -127,7 +127,43 @@ static struct clcd_board cx_clcd_data = {
 static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 	{ NSPIRE_IRQ_LCD }, &cx_clcd_data);
 
-/************** USB *************/
+/************** USB HOST *************/
+
+static struct resource cx_hostusb_resources[] = {
+	RESOURCE_ENTRY_MEM(HOSTUSB),
+	RESOURCE_ENTRY_IRQ(OTG)
+};
+
+static __init int cx_usb_init(void)
+{
+	int err = 0;
+	unsigned val;
+	void __iomem *hostusb_addr =
+		ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+
+	if (!hostusb_addr) {
+		pr_warn("Could not allocate enough memory to initialize NSPIRE host USB\n");
+		err = -ENOMEM;
+		goto out;
+	}
+
+	/* Disable OTG interrupts */
+	pr_info("Disable OTG interrupts\n");
+	val	 = readl(hostusb_addr + 0x1a4);
+	val &= ~(0x7f<<24);
+	writel(val, hostusb_addr + 0x1a4);
+
+	iounmap(hostusb_addr);
+
+	pr_info("Adding USB controller as platform device\n");
+
+	nspire_hostusb_device.resource = cx_hostusb_resources;
+	nspire_hostusb_device.num_resources = ARRAY_SIZE(cx_hostusb_resources);
+	err = platform_device_register(&nspire_hostusb_device);
+out:
+
+	return err;
+}
 
 static __init int cx_usb_workaround(void)
 {
@@ -163,12 +199,13 @@ void __init cx_init(void)
 
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);
+	cx_usb_init();
 }
 
 void __init cx_init_late(void)
 {
 	nspire_init_late();
-	//cx_usb_workaround();
+	cx_usb_workaround();
 }
 
 MACHINE_START(NSPIRECX, "TI-NSPIRE CX Calculator")
