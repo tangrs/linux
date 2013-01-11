@@ -292,6 +292,12 @@ static struct resource classic_hostusb_resources[] = {
 /* Init */
 void __init nspire_classic_init(void)
 {
+        /*
+	 * Temporarily disable NAND writes on classics to prevent
+	 * accidental bricking.
+	 */
+	writel((1<<7), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x18));
+
 	amba_device_register(&fb_device, &iomem_resource);
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&nspire_classic_serial_device);
