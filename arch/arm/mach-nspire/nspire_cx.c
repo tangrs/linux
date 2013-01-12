@@ -129,17 +129,12 @@ static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 
 /************** USB HOST *************/
 
-static struct resource cx_hostusb_resources[] = {
-	RESOURCE_ENTRY_MEM(HOSTUSB),
-	RESOURCE_ENTRY_IRQ(OTG)
-};
-
 static __init int cx_usb_init(void)
 {
 	int err = 0;
 	unsigned val;
 	void __iomem *hostusb_addr =
-		ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+		ioremap(NSPIRE_OTG_PHYS_BASE, NSPIRE_OTG_SIZE);
 
 	if (!hostusb_addr) {
 		pr_warn("Could not allocate enough memory to initialize NSPIRE host USB\n");
@@ -156,10 +151,7 @@ static __init int cx_usb_init(void)
 	iounmap(hostusb_addr);
 
 	pr_info("Adding USB controller as platform device\n");
-
-	nspire_hostusb_device.resource = cx_hostusb_resources;
-	nspire_hostusb_device.num_resources = ARRAY_SIZE(cx_hostusb_resources);
-	err = platform_device_register(&nspire_hostusb_device);
+	err = platform_device_register(&nspire_cxusbhost_device);
 out:
 
 	return err;
@@ -170,7 +162,7 @@ static __init int cx_usb_workaround(void)
 	int err = 0;
 	unsigned val;
 	void __iomem *hostusb_addr =
-		ioremap(NSPIRE_HOSTUSB_PHYS_BASE, NSPIRE_HOSTUSB_SIZE);
+		ioremap(NSPIRE_OTG_PHYS_BASE, NSPIRE_OTG_SIZE);
 
 	if (!hostusb_addr) {
 		pr_warn("Could not do USB workaround\n");
@@ -209,7 +201,9 @@ static struct platform_device i2c_device = {
 
 /************** INIT ***************/
 
-void __init cx_init(void)
+extern bool cx_use_otg;
+
+static void __init cx_init(void)
 {
 	nspire_init();
 	amba_device_register(&fb_device, &iomem_resource);
@@ -218,13 +212,20 @@ void __init cx_init(void)
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&i2c_device);
-	cx_usb_init();
+
+	if (!cx_use_otg) {
+		pr_info("Selecting USB host only driver for CX\n");
+		cx_usb_init();
+	} else {
+		pr_info("Selecting USB OTG driver for CX\n");
+	}
 }
 
-void __init cx_init_late(void)
+static void __init cx_init_late(void)
 {
+	if (!cx_use_otg)
+		cx_usb_workaround();
 	nspire_init_late();
-	cx_usb_workaround();
 }
 
 MACHINE_START(NSPIRECX, "TI-NSPIRE CX Calculator")
