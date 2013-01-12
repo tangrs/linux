@@ -34,6 +34,7 @@
 
 extern struct platform_device nspire_keypad_device;
 extern struct platform_device nspire_cxusbhost_device;
+extern struct i2c_board_info  nspire_i2c_board;
 
 extern struct nspire_keypad_data nspire_keypad_data;
 

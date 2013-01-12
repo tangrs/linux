@@ -37,13 +37,14 @@
 
 #include "common.h"
 #include "classic.h"
+#include "touchpad.h"
 
 /* I2C GPIO (touchpad) */
 
 static struct i2c_gpio_platform_data i2c_pdata = {
 	.sda_pin	= 3,
 	.scl_pin	= 1,
-	.udelay		= 1,
+	.udelay		= 2,
 	.timeout	= 1000,
 };
 
@@ -60,6 +61,7 @@ static void __init tp_init(void)
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&i2c_device);
 	nspire_classic_init();
+	nspire_touchpad_init();
 }
 
 MACHINE_START(NSPIRETP, "TI-NSPIRE Touchpad Calculator")

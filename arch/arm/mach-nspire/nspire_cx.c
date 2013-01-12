@@ -36,6 +36,7 @@
 #include <asm/mach/arch.h>
 
 #include "common.h"
+#include "touchpad.h"
 
 /**************** IRQ ****************/
 static void __init cx_init_irq(void)
@@ -212,6 +213,7 @@ static void __init cx_init(void)
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&i2c_device);
+	nspire_touchpad_init();
 
 	if (!cx_use_otg) {
 		pr_info("Selecting USB host only driver for CX\n");

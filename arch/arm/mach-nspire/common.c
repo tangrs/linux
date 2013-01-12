@@ -49,7 +49,7 @@ static struct clk ahb_clk = {
 
 #ifdef CONFIG_MACH_NSPIRECX
 static struct clk i2c_clk = {
-	.rate	= 100000,
+	.rate	= 250000,
 };
 #endif
 
@@ -261,7 +261,7 @@ void __init nspire_init_early(void)
 	clkdev_add_table(nspire_clk_lookup, ARRAY_SIZE(nspire_clk_lookup));
 
 	/* Renable bus access to everything in case the OS disabled them */
-	writel(0, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x18));
+	writel(1 << 7, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x18));
 	writel(0, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x20));
 }
 

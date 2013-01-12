@@ -29,9 +29,9 @@
  * after soft reset, we should wait for 1 ms
  * before the device becomes operational
  */
-#define SOFT_RESET_DELAY_MS	3
+#define SOFT_RESET_DELAY_MS	1
 /* and after hard reset, we should wait for max 500ms */
-#define HARD_RESET_DELAY_MS	500
+#define HARD_RESET_DELAY_MS	1
 
 /* Registers by SMBus address */
 #define PAGE_SEL_REG		0xff
@@ -70,7 +70,7 @@
 #define PRODUCT_ID_REG14	(PRODUCT_ID_REG0 + 14)
 #define PRODUCT_ID_REG15	(PRODUCT_ID_REG0 + 15)
 
-#define DATA_REG0		0x0400
+#define DATA_REG0		0x040A
 #define ABS_PRESSURE_REG	0x0401
 #define ABS_MSB_X_REG		0x0402
 #define ABS_LSB_X_REG		(ABS_MSB_X_REG + 1)
@@ -116,7 +116,7 @@
 #define REZERO_COMMAND		0x02
 
 /* Data Register 0 Bits (DATA_REG0) */
-#define GESTURE			3
+#define GESTURE			0
 
 /* Device Query Registers Bits */
 /* DEV_QUERY_REG3 */
@@ -317,6 +317,8 @@ static int synaptics_i2c_reset_config(struct i2c_client *client)
 			dev_err(&client->dev, "Unable to config device\n");
 	}
 
+	dev_err(&client->dev, "RESET\n");
+
 	return ret;
 }
 
@@ -341,8 +343,8 @@ static bool synaptics_i2c_get_input(struct synaptics_i2c *touch)
 	s8 x_delta, y_delta;
 
 	/* Deal with spontanious resets and errors */
-	if (synaptics_i2c_check_error(touch->client))
-		return 0;
+	/*if (synaptics_i2c_check_error(touch->client))
+		return 0;*/
 
 	/* Get Gesture Bit */
 	data = synaptics_i2c_reg_get(touch->client, DATA_REG0);
