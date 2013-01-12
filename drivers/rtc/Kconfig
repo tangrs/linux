@@ -677,6 +677,13 @@ config RTC_DRV_MSM6242
 	  This driver can also be built as a module. If so, the module
 	  will be called rtc-msm6242.
 
+config RTC_DRV_NSPIRE
+	tristate "TI-NSPIRE RTC"
+	depends on EXPERIMENTAL
+	help
+	  If you say yes here you get support for the RTC found in TI-NSPIRE
+	  calculators.
+
 config RTC_DRV_BQ4802
 	tristate "TI BQ4802"
 	help

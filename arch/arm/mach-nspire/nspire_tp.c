@@ -22,7 +22,7 @@
 #include <linux/usb/ehci_pdriver.h>
 #include <linux/mtd/nand.h>
 #include <linux/irq.h>
-
+#include <linux/i2c-gpio.h>
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -38,10 +38,27 @@
 #include "common.h"
 #include "classic.h"
 
+/* I2C GPIO (touchpad) */
+
+static struct i2c_gpio_platform_data i2c_pdata = {
+	.sda_pin	= 3,
+	.scl_pin	= 1,
+	.udelay		= 1,
+	.timeout	= 1000,
+};
+
+static struct platform_device i2c_device = {
+	.name		= "i2c-gpio",
+	.id		= 0,
+	.dev = {
+		.platform_data = &i2c_pdata,
+	}
+};
 
 static void __init tp_init(void)
 {
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
+	platform_device_register(&i2c_device);
 	nspire_classic_init();
 }
 

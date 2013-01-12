@@ -197,6 +197,13 @@ config INPUT_MPU3050
 	  To compile this driver as a module, choose M here: the
 	  module will be called mpu3050.
 
+config INPUT_NSPIRE_ONKEY
+	bool "TI-NSPIRE ON Key"
+	depends on ARCH_NSPIRE
+	help
+	  Say Y here if you want to the ON key on TI-NSPIRE calculators
+	  to work
+
 config INPUT_APANEL
 	tristate "Fujitsu Lifebook Application Panel buttons"
 	depends on X86 && I2C && LEDS_CLASS

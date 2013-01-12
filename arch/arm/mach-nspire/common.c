@@ -13,6 +13,7 @@
 #include <linux/clkdev.h>
 #include <linux/platform_device.h>
 #include <linux/usb/ehci_pdriver.h>
+#include <linux/usb/chipidea.h>
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
 #include <linux/dma-mapping.h>
@@ -24,6 +25,7 @@
 #include <mach/sram.h>
 
 #include <asm/mach/time.h>
+#include <asm/mach-types.h>
 #include <asm/mach/map.h>
 
 #include "adc.h"
@@ -45,6 +47,12 @@ static struct clk ahb_clk = {
 	.rate	= 66000000,
 };
 
+#ifdef CONFIG_MACH_NSPIRECX
+static struct clk i2c_clk = {
+	.rate	= 100000,
+};
+#endif
+
 static struct clk_lookup nspire_clk_lookup[] = {
 	{
 		.dev_id = "uart",
@@ -63,6 +71,10 @@ static struct clk_lookup nspire_clk_lookup[] = {
 		.dev_id = "sp804",
 		.con_id = "timer2",
 		.clk = &systimer_clk
+	},
+	{
+		.dev_id = "i2c_designware.0",
+		.clk = &i2c_clk
 	},
 #endif
 #if defined(CONFIG_MACH_NSPIRECLP) || defined(CONFIG_MACH_NSPIRETP)
@@ -146,22 +158,88 @@ void nspire_clcd_remove(struct clcd_fb *fb)
 		fb->fb.screen_base, fb->fb.fix.smem_start);
 }
 
-/* USB HOST */
-static struct usb_ehci_pdata nspire_hostusb_pdata = {
+/* USB */
+
+static u64 usb_dma_mask = ~(u32)0;
+
+
+/* CX USB host */
+
+static struct usb_ehci_pdata cxusbhost_pdata = {
 	.has_tt = 1,
 	.caps_offset = 0x100
 };
 
-static u64 nspire_usb_dma_mask = ~(u32)0;
+static struct resource cxusbhost_resources_pdata[] = {
+	RESOURCE_ENTRY_MEM(OTG),
+	RESOURCE_ENTRY_IRQ(OTG)
+};
 
-struct platform_device nspire_hostusb_device = {
+struct platform_device nspire_cxusbhost_device = {
 	.name		= "ehci-platform",
 	.id		= 0,
 	.dev = {
-		.platform_data = &nspire_hostusb_pdata,
+		.platform_data = &cxusbhost_pdata,
 		.coherent_dma_mask = ~0,
-		.dma_mask = &nspire_usb_dma_mask
-	}
+		.dma_mask = &usb_dma_mask
+	},
+	.resource = cxusbhost_resources_pdata,
+	.num_resources = ARRAY_SIZE(cxusbhost_resources_pdata)
+};
+
+/* Generic OTG */
+
+static struct resource otg_resources[] = {
+	RESOURCE_ENTRY_MEM(OTG),
+	RESOURCE_ENTRY_IRQ(OTG)
+};
+
+static struct ci13xxx_platform_data otg_pdata = {
+	.name = "nspire_usb",
+	.capoffset = 0x100,
+	.flags = CI13XXX_REGS_SHARED,
+};
+
+
+static struct platform_device otg_device = {
+	.name		= "ci_hdrc",
+	.id		= 0,
+	.dev = {
+		.platform_data = &otg_pdata,
+		.coherent_dma_mask = ~0,
+		.dma_mask = &usb_dma_mask
+	},
+	.resource = otg_resources,
+	.num_resources = ARRAY_SIZE(otg_resources)
+};
+
+static struct platform_device usb_nop_xceiver = {
+	.name		= "nop_usb_xceiv",
+};
+
+bool cx_use_otg;
+static int __init set_cx_otg(char *dummy __attribute__((unused)))
+{
+	cx_use_otg = 1;
+	return 0;
+}
+early_param("cx_use_otg", set_cx_otg);
+
+/* RTC */
+static struct resource nspire_rtc_resources[] = {
+	{
+		.start	= NSPIRE_APB_PHYS(NSPIRE_APB_RTC),
+		.end	= NSPIRE_APB_PHYS(NSPIRE_APB_RTC + SZ_4K - 1),
+		.flags	= IORESOURCE_MEM,
+	},
+	RESOURCE_ENTRY_IRQ(RTC)
+};
+
+static struct platform_device nspire_rtc_device = {
+	.name		= "nspire-rtc",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(nspire_rtc_resources),
+	.resource	= nspire_rtc_resources,
 };
 
 /* Memory mapped IO */
@@ -181,6 +259,10 @@ void __init nspire_map_io(void)
 void __init nspire_init_early(void)
 {
 	clkdev_add_table(nspire_clk_lookup, ARRAY_SIZE(nspire_clk_lookup));
+
+	/* Renable bus access to everything in case the OS disabled them */
+	writel(0, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x18));
+	writel(0, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x20));
 }
 
 /* Common init */
@@ -189,6 +271,12 @@ void __init nspire_init(void)
 	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
 	platform_device_register(&nspire_gpio_device);
+	platform_device_register(&nspire_rtc_device);
+
+	if (!machine_is_nspirecx() || cx_use_otg) {
+		platform_device_register(&otg_device);
+		platform_device_register(&usb_nop_xceiver);
+	}
 }
 
 void __init nspire_init_late(void)
