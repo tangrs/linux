@@ -45,6 +45,12 @@ static struct clk ahb_clk = {
 	.rate	= 66000000,
 };
 
+#ifdef CONFIG_MACH_NSPIRECX
+static struct clk i2c_clk = {
+	.rate	= 100000,
+};
+#endif
+
 static struct clk_lookup nspire_clk_lookup[] = {
 	{
 		.dev_id = "uart",
@@ -63,6 +69,10 @@ static struct clk_lookup nspire_clk_lookup[] = {
 		.dev_id = "sp804",
 		.con_id = "timer2",
 		.clk = &systimer_clk
+	},
+	{
+		.dev_id = "i2c_designware.0",
+		.clk = &i2c_clk
 	},
 #endif
 #if defined(CONFIG_MACH_NSPIRECLP) || defined(CONFIG_MACH_NSPIRETP)

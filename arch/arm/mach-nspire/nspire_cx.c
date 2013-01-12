@@ -189,6 +189,24 @@ out:
 	return err;
 }
 
+/* I2C (touchpad) */
+
+static struct resource i2c_resources[] = {
+	{
+		.start	= NSPIRE_APB_PHYS(NSPIRE_APB_I2C),
+		.end	= NSPIRE_APB_PHYS(NSPIRE_APB_I2C + SZ_4K - 1),
+		.flags	= IORESOURCE_MEM,
+	},
+	RESOURCE_ENTRY_IRQ(I2C)
+};
+
+static struct platform_device i2c_device = {
+	.name		= "i2c_designware",
+	.id		= 0,
+	.resource	= i2c_resources,
+	.num_resources	= ARRAY_SIZE(i2c_resources)
+};
+
 /************** INIT ***************/
 
 void __init cx_init(void)
@@ -199,6 +217,7 @@ void __init cx_init(void)
 
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);
+	platform_device_register(&i2c_device);
 	cx_usb_init();
 }
 

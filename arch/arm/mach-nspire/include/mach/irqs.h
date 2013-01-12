@@ -12,7 +12,7 @@
 #ifndef NSPIRE_IRQS_H
 #define NSPIRE_IRQS_H
 
-#define NSPIRE_IRQ_MASK         0x006FEB9A
+#define NSPIRE_IRQ_MASK         0x007FEB9A
 
 enum {
 	NSPIRE_IRQ_UART = 1,
@@ -23,6 +23,7 @@ enum {
 	NSPIRE_IRQ_PWR = 15,
 	NSPIRE_IRQ_KEYPAD = 16,
 	NSPIRE_IRQ_TIMER2 = 19,
+	NSPIRE_IRQ_I2C = 20,
 	NSPIRE_IRQ_LCD = 21
 };
 
