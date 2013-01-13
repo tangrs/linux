@@ -281,6 +281,7 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
 
 	/* set standard and fast speed deviders for high/low periods */
 
+#ifndef CONFIG_MACH_NSPIRECX
 	/* Standard-mode */
 	hcnt = i2c_dw_scl_hcnt(input_clock_khz,
 				40,	/* tHD;STA = tHIGH = 4.0 us */
@@ -291,12 +292,16 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
 				47,	/* tLOW = 4.7 us */
 				3,	/* tf = 0.3 us */
 				0);	/* No offset */
+#error asdf
+#else
 	hcnt = 0x9c;
 	lcnt = 0xea;
+#endif
 	dw_writel(dev, hcnt, DW_IC_SS_SCL_HCNT);
 	dw_writel(dev, lcnt, DW_IC_SS_SCL_LCNT);
 	dev_dbg(dev->dev, "Standard-mode HCNT:LCNT = %d:%d\n", hcnt, lcnt);
-
+	
+#ifndef CONFIG_MACH_NSPIRECX
 	/* Fast-mode */
 	hcnt = i2c_dw_scl_hcnt(input_clock_khz,
 				6,	/* tHD;STA = tHIGH = 0.6 us */
@@ -307,8 +312,10 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
 				13,	/* tLOW = 1.3 us */
 				3,	/* tf = 0.3 us */
 				0);	/* No offset */
+#else
 	hcnt = 0x3b;
 	lcnt = 0x2b;
+#endif
 	dw_writel(dev, hcnt, DW_IC_FS_SCL_HCNT);
 	dw_writel(dev, lcnt, DW_IC_FS_SCL_LCNT);
 	dev_dbg(dev->dev, "Fast-mode HCNT:LCNT = %d:%d\n", hcnt, lcnt);

@@ -29,9 +29,9 @@
  * after soft reset, we should wait for 1 ms
  * before the device becomes operational
  */
-#define SOFT_RESET_DELAY_MS	1
+#define SOFT_RESET_DELAY_MS	3
 /* and after hard reset, we should wait for max 500ms */
-#define HARD_RESET_DELAY_MS	1
+#define HARD_RESET_DELAY_MS	500
 
 /* Registers by SMBus address */
 #define PAGE_SEL_REG		0xff
@@ -70,7 +70,7 @@
 #define PRODUCT_ID_REG14	(PRODUCT_ID_REG0 + 14)
 #define PRODUCT_ID_REG15	(PRODUCT_ID_REG0 + 15)
 
-#define DATA_REG0		0x040A
+#define DATA_REG0		0x0400
 #define ABS_PRESSURE_REG	0x0401
 #define ABS_MSB_X_REG		0x0402
 #define ABS_LSB_X_REG		(ABS_MSB_X_REG + 1)
@@ -78,6 +78,7 @@
 #define ABS_LSB_Y_REG		(ABS_MSB_Y_REG + 1)
 #define REL_X_REG		0x0406
 #define REL_Y_REG		0x0407
+#define CLICKPAD_DOWN		0x040A
 
 #define DEV_QUERY_REG0		0x1000
 #define DEV_QUERY_REG1		(DEV_QUERY_REG0 + 1)
@@ -116,7 +117,7 @@
 #define REZERO_COMMAND		0x02
 
 /* Data Register 0 Bits (DATA_REG0) */
-#define GESTURE			0
+#define GESTURE			3
 
 /* Device Query Registers Bits */
 /* DEV_QUERY_REG3 */
@@ -188,6 +189,19 @@
 static bool no_decel = 1;
 module_param(no_decel, bool, 0644);
 MODULE_PARM_DESC(no_decel, "No Deceleration. Default = 1 (on)");
+
+/* Whether to treat the clickpad as button */
+#if defined(CONFIG_MACH_NSPIRECX) || defined(CONFIG_MACH_NSPIRETP)
+static bool clickpad = 1;
+#else
+static bool clickpad = 0;
+#endif
+module_param(clickpad, bool, 0644);
+#if defined(CONFIG_MACH_NSPIRECX) || defined(CONFIG_MACH_NSPIRETP)
+MODULE_PARM_DESC(clickpad, "Enable  Clickpad. Default = 1 (on)");
+#else
+MODULE_PARM_DESC(clickpad, "Enable  Clickpad. Default = 0 (off)");
+#endif
 
 /* Control touchpad's Reduced Reporting option */
 static bool reduce_report;
@@ -317,8 +331,6 @@ static int synaptics_i2c_reset_config(struct i2c_client *client)
 			dev_err(&client->dev, "Unable to config device\n");
 	}
 
-	dev_err(&client->dev, "RESET\n");
-
 	return ret;
 }
 
@@ -342,13 +354,21 @@ static bool synaptics_i2c_get_input(struct synaptics_i2c *touch)
 	s32 data;
 	s8 x_delta, y_delta;
 
+#if defined(CONFIG_MACH_NSPIRECX) || defined(CONFIG_MACH_NSPIRETP)
 	/* Deal with spontanious resets and errors */
-	/*if (synaptics_i2c_check_error(touch->client))
-		return 0;*/
+	if (synaptics_i2c_check_error(touch->client))
+		return 0;
+#endif
 
 	/* Get Gesture Bit */
 	data = synaptics_i2c_reg_get(touch->client, DATA_REG0);
 	gesture = (data >> GESTURE) & 0x1;
+
+	if(clickpad)
+	{
+		data = synaptics_i2c_reg_get(touch->client, CLICKPAD_DOWN);
+		gesture |= data & 0x1;
+	}
 
 	/*
 	 * Get Relative axes. we have to get them in one shot,

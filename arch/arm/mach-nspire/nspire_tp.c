@@ -44,7 +44,7 @@
 static struct i2c_gpio_platform_data i2c_pdata = {
 	.sda_pin	= 3,
 	.scl_pin	= 1,
-	.udelay		= 2,
+	.udelay		= 1,
 	.timeout	= 1000,
 };
 
