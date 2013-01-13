@@ -292,7 +292,6 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
 				47,	/* tLOW = 4.7 us */
 				3,	/* tf = 0.3 us */
 				0);	/* No offset */
-#error asdf
 #else
 	hcnt = 0x9c;
 	lcnt = 0xea;
