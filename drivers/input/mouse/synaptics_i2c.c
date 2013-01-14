@@ -191,17 +191,9 @@ module_param(no_decel, bool, 0644);
 MODULE_PARM_DESC(no_decel, "No Deceleration. Default = 1 (on)");
 
 /* Whether to treat the clickpad as button */
-#if defined(CONFIG_MACH_NSPIRECX) || defined(CONFIG_MACH_NSPIRETP)
-static bool clickpad = 1;
-#else
-static bool clickpad = 0;
-#endif
-module_param(clickpad, bool, 0644);
-#if defined(CONFIG_MACH_NSPIRECX) || defined(CONFIG_MACH_NSPIRETP)
-MODULE_PARM_DESC(clickpad, "Enable  Clickpad. Default = 1 (on)");
-#else
-MODULE_PARM_DESC(clickpad, "Enable  Clickpad. Default = 0 (off)");
-#endif
+static int clickpad = 2;
+module_param(clickpad, int, 0644);
+MODULE_PARM_DESC(clickpad, "Enable Clickpad. Default = 2 (auto)");
 
 /* Control touchpad's Reduced Reporting option */
 static bool reduce_report;
@@ -351,20 +343,23 @@ static bool synaptics_i2c_get_input(struct synaptics_i2c *touch)
 {
 	struct input_dev *input = touch->input;
 	int xy_delta, gesture;
-	s32 data;
+	s32 data, model;
 	s8 x_delta, y_delta;
 
-#if defined(CONFIG_MACH_NSPIRECX) || defined(CONFIG_MACH_NSPIRETP)
+	/* Product number */
+	model = synaptics_i2c_reg_get(touch->client, INFO_QUERY_REG1);
+	/* Just for determining the model number */
+	printk(KERN_INFO "Touchpad model number: 0x%x CP: %d", model, clickpad);
+
 	/* Deal with spontanious resets and errors */
-	if (synaptics_i2c_check_error(touch->client))
+	if (model != 0x6 && synaptics_i2c_check_error(touch->client))
 		return 0;
-#endif
 
 	/* Get Gesture Bit */
 	data = synaptics_i2c_reg_get(touch->client, DATA_REG0);
 	gesture = (data >> GESTURE) & 0x1;
 
-	if(clickpad)
+	if(clickpad == 1 || (clickpad == 2 && model == 0x6))
 	{
 		data = synaptics_i2c_reg_get(touch->client, CLICKPAD_DOWN);
 		gesture |= data & 0x1;

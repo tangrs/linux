@@ -26,5 +26,5 @@ void __init nspire_touchpad_init()
 }
 
 #else
-static inline void nspire_touchpad_init(){}
+inline void nspire_touchpad_init(){}
 #endif
