@@ -199,6 +199,33 @@ static struct platform_device i2c_device = {
 	.num_resources	= ARRAY_SIZE(i2c_resources)
 };
 
+/* Backlight driver */
+
+#define CX_BACKLIGHT_UPPER	0x1d0
+#define CX_BACKLIGHT_LOWER	0x100 /* Should be (around about) off */
+
+static void cx_set_backlight(int val) {
+	val += CX_BACKLIGHT_LOWER;
+
+	if (val <= CX_BACKLIGHT_UPPER)
+		writel(val, NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20));
+}
+
+static struct generic_bl_info cx_bl = {
+	.name 		= "nspire_backlight",
+	.max_intensity	= CX_BACKLIGHT_UPPER - CX_BACKLIGHT_LOWER,
+	.default_intensity = (CX_BACKLIGHT_UPPER - CX_BACKLIGHT_LOWER) / 2,
+	.set_bl_intensity = cx_set_backlight
+};
+
+static struct platform_device bl_device = {
+	.name		= "generic-bl",
+	.id		= 0,
+	.dev = {
+		.platform_data = &cx_bl,
+	}
+};
+
 /************** INIT ***************/
 
 extern bool cx_use_otg;
@@ -212,6 +239,7 @@ static void __init cx_init(void)
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&i2c_device);
+	platform_device_register(&bl_device);
 
 	if (!cx_use_otg) {
 		pr_info("Selecting USB host only driver for CX\n");
