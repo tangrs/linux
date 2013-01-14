@@ -49,6 +49,7 @@ static struct clk ahb_clk = {
 
 #ifdef CONFIG_MACH_NSPIRECX
 static struct clk i2c_clk = {
+	/* Doesn't matter, we set it manually */
 	.rate	= 250000,
 };
 #endif

@@ -195,6 +195,7 @@ static struct resource i2c_resources[] = {
 };
 
 static struct i2c_dw_platdata i2c_platdata = {
+	/* OS defaults */
 	.ss_hcnt = 0x9c,
 	.ss_lcnt = 0xea,
 	.fs_hcnt = 0x3b,
