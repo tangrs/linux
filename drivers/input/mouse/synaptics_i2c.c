@@ -348,8 +348,6 @@ static bool synaptics_i2c_get_input(struct synaptics_i2c *touch)
 
 	/* Product number */
 	model = synaptics_i2c_reg_get(touch->client, INFO_QUERY_REG1);
-	/* Just for determining the model number */
-	printk(KERN_INFO "Touchpad model number: 0x%x CP: %d", model, clickpad);
 
 	/* Deal with spontanious resets and errors */
 	if (model != 0x6 && synaptics_i2c_check_error(touch->client))
