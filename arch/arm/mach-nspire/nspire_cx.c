@@ -239,6 +239,33 @@ static struct platform_device bl_device = {
 	}
 };
 
+/* Backlight driver */
+
+#define CX_BACKLIGHT_UPPER	0x1d0
+#define CX_BACKLIGHT_LOWER	0x100 /* Should be (around about) off */
+
+static void cx_set_backlight(int val) {
+	val += CX_BACKLIGHT_LOWER;
+
+	if (val <= CX_BACKLIGHT_UPPER)
+		writel(val, NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20));
+}
+
+static struct generic_bl_info cx_bl = {
+	.name 		= "nspire_backlight",
+	.max_intensity	= CX_BACKLIGHT_UPPER - CX_BACKLIGHT_LOWER,
+	.default_intensity = (CX_BACKLIGHT_UPPER - CX_BACKLIGHT_LOWER) / 2,
+	.set_bl_intensity = cx_set_backlight
+};
+
+static struct platform_device bl_device = {
+	.name		= "generic-bl",
+	.id		= 0,
+	.dev = {
+		.platform_data = &cx_bl,
+	}
+};
+
 /************** INIT ***************/
 
 extern bool cx_use_otg;
