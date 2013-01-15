@@ -26,6 +26,10 @@
  *
  */
 
+#include <linux/platform_data/i2c-designware.h>
+
+#ifndef I2C_DESIGNWARE_CORE_H
+#define I2C_DESIGNWARE_CORE_H
 
 #define DW_IC_CON_MASTER		0x1
 #define DW_IC_CON_SPEED_STD		0x2
@@ -63,6 +67,7 @@
  */
 struct dw_i2c_dev {
 	struct device		*dev;
+	struct i2c_dw_platdata	platdata;
 	void __iomem		*base;
 	struct completion	cmd_complete;
 	struct mutex		lock;
@@ -106,3 +111,5 @@ extern void i2c_dw_disable(struct dw_i2c_dev *dev);
 extern void i2c_dw_clear_int(struct dw_i2c_dev *dev);
 extern void i2c_dw_disable_int(struct dw_i2c_dev *dev);
 extern u32 i2c_dw_read_comp_param(struct dw_i2c_dev *dev);
+
+#endif /* I2C_DESIGNWARE_CORE_H */

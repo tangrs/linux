@@ -21,6 +21,7 @@
 #include <linux/input.h>
 #include <linux/usb/ehci_pdriver.h>
 #include <linux/mtd/nand.h>
+#include <linux/platform_data/i2c-designware.h>
 
 #include <mach/nspire_mmio.h>
 #include <mach/irqs.h>
@@ -36,6 +37,7 @@
 #include <asm/mach/arch.h>
 
 #include "common.h"
+#include "touchpad.h"
 
 /**************** IRQ ****************/
 static void __init cx_init_irq(void)
@@ -181,7 +183,7 @@ out:
 	return err;
 }
 
-/* I2C (touchpad) */
+/*************** I2C ***************/
 
 static struct resource i2c_resources[] = {
 	{
@@ -192,11 +194,22 @@ static struct resource i2c_resources[] = {
 	RESOURCE_ENTRY_IRQ(I2C)
 };
 
+static struct i2c_dw_platdata i2c_platdata = {
+	/* OS defaults */
+	.ss_hcnt = 0x9c,
+	.ss_lcnt = 0xea,
+	.fs_hcnt = 0x3b,
+	.fs_lcnt = 0x2b
+};
+
 static struct platform_device i2c_device = {
 	.name		= "i2c_designware",
 	.id		= 0,
 	.resource	= i2c_resources,
-	.num_resources	= ARRAY_SIZE(i2c_resources)
+	.num_resources	= ARRAY_SIZE(i2c_resources),
+	.dev = {
+		.platform_data = &i2c_platdata
+	}
 };
 
 /* Backlight driver */
@@ -240,6 +253,7 @@ static void __init cx_init(void)
 	platform_device_register(&nspire_keypad_device);
 	platform_device_register(&i2c_device);
 	platform_device_register(&bl_device);
+	nspire_touchpad_init();
 
 	if (!cx_use_otg) {
 		pr_info("Selecting USB host only driver for CX\n");

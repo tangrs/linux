@@ -39,6 +39,7 @@
 #include <linux/pm.h>
 #include <linux/io.h>
 #include <linux/slab.h>
+#include <linux/platform_data/i2c-designware.h>
 #include "i2c-designware-core.h"
 
 static struct i2c_algorithm i2c_dw_algo = {
@@ -53,6 +54,7 @@ static u32 i2c_dw_get_clk_rate_khz(struct dw_i2c_dev *dev)
 static int dw_i2c_probe(struct platform_device *pdev)
 {
 	struct dw_i2c_dev *dev;
+	struct i2c_dw_platdata *pdata = pdev->dev.platform_data;
 	struct i2c_adapter *adap;
 	struct resource *mem, *ioarea;
 	int irq, r;
@@ -82,6 +84,10 @@ static int dw_i2c_probe(struct platform_device *pdev)
 		r = -ENOMEM;
 		goto err_release_region;
 	}
+
+	/* Zero is default, so we just don't care if there's no platdata */
+	if(pdata)
+		memcpy(&(dev->platdata), pdata, sizeof(*pdata));
 
 	init_completion(&dev->cmd_complete);
 	mutex_init(&dev->lock);

@@ -78,6 +78,7 @@
 #define ABS_LSB_Y_REG		(ABS_MSB_Y_REG + 1)
 #define REL_X_REG		0x0406
 #define REL_Y_REG		0x0407
+#define CLICKPAD_DOWN		0x040A
 
 #define DEV_QUERY_REG0		0x1000
 #define DEV_QUERY_REG1		(DEV_QUERY_REG0 + 1)
@@ -188,6 +189,11 @@
 static bool no_decel = 1;
 module_param(no_decel, bool, 0644);
 MODULE_PARM_DESC(no_decel, "No Deceleration. Default = 1 (on)");
+
+/* Whether to treat the clickpad as button */
+static int clickpad = 2;
+module_param(clickpad, int, 0644);
+MODULE_PARM_DESC(clickpad, "Enable Clickpad. Default = 2 (auto)");
 
 /* Control touchpad's Reduced Reporting option */
 static bool reduce_report;
@@ -337,16 +343,25 @@ static bool synaptics_i2c_get_input(struct synaptics_i2c *touch)
 {
 	struct input_dev *input = touch->input;
 	int xy_delta, gesture;
-	s32 data;
+	s32 data, model;
 	s8 x_delta, y_delta;
 
+	/* Product number */
+	model = synaptics_i2c_reg_get(touch->client, INFO_QUERY_REG1);
+
 	/* Deal with spontanious resets and errors */
-	if (synaptics_i2c_check_error(touch->client))
+	if (model != 0x6 && synaptics_i2c_check_error(touch->client))
 		return 0;
 
 	/* Get Gesture Bit */
 	data = synaptics_i2c_reg_get(touch->client, DATA_REG0);
 	gesture = (data >> GESTURE) & 0x1;
+
+	if(clickpad == 1 || (clickpad == 2 && model == 0x6))
+	{
+		data = synaptics_i2c_reg_get(touch->client, CLICKPAD_DOWN);
+		gesture |= data & 0x1;
+	}
 
 	/*
 	 * Get Relative axes. we have to get them in one shot,
