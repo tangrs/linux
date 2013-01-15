@@ -47,6 +47,15 @@ static struct clk ahb_clk = {
 	.rate	= 66000000,
 };
 
+static void apb_get_rate(struct clk *clk)
+{
+	clk->rate = clk_get_rate(&ahb_clk);
+}
+
+static struct clk apb_clk = {
+	.get_rate = apb_get_rate
+};
+
 #ifdef CONFIG_MACH_NSPIRECX
 static struct clk i2c_clk = {
 	.rate	= 100000,
@@ -65,6 +74,10 @@ static struct clk_lookup nspire_clk_lookup[] = {
 	{
 		.con_id = "ahb",
 		.clk = &ahb_clk
+	},
+	{
+		.dev_id = "watchdog",
+		.clk = &apb_clk
 	},
 #ifdef CONFIG_MACH_NSPIRECX
 	{
@@ -157,6 +170,11 @@ void nspire_clcd_remove(struct clcd_fb *fb)
 	dma_free_writecombine(&fb->dev->dev, fb->fb.fix.smem_len,
 		fb->fb.screen_base, fb->fb.fix.smem_start);
 }
+
+/* Watchdog */
+
+AMBA_APB_DEVICE(watchdog, "watchdog", 0, NSPIRE_APB_PHYS(NSPIRE_APB_WATCHDOG),
+	{ NSPIRE_IRQ_WATCHDOG }, NULL);
 
 /* USB */
 
@@ -270,6 +288,8 @@ void __init nspire_init(void)
 {
 	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
+	amba_device_register(&watchdog_device, &iomem_resource);
+
 	platform_device_register(&nspire_gpio_device);
 	platform_device_register(&nspire_rtc_device);
 
