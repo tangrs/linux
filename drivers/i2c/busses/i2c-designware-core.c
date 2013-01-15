@@ -258,7 +258,6 @@ static u32 i2c_dw_scl_lcnt(u32 ic_clk, u32 tLOW, u32 tf, int offset)
 int i2c_dw_init(struct dw_i2c_dev *dev)
 {
 	u32 input_clock_khz;
-	u32 hcnt, lcnt;
 	u32 reg;
 
 	input_clock_khz = dev->get_clk_rate_khz(dev);
@@ -282,32 +281,40 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
 	/* set standard and fast speed deviders for high/low periods */
 
 	/* Standard-mode */
-	hcnt = i2c_dw_scl_hcnt(input_clock_khz,
+	if(!dev->platdata.ss_hcnt)
+		dev->platdata.ss_hcnt = i2c_dw_scl_hcnt(input_clock_khz,
 				40,	/* tHD;STA = tHIGH = 4.0 us */
 				3,	/* tf = 0.3 us */
 				0,	/* 0: DW default, 1: Ideal */
 				0);	/* No offset */
-	lcnt = i2c_dw_scl_lcnt(input_clock_khz,
+	if(!dev->platdata.ss_lcnt)
+		dev->platdata.ss_lcnt = i2c_dw_scl_lcnt(input_clock_khz,
 				47,	/* tLOW = 4.7 us */
 				3,	/* tf = 0.3 us */
 				0);	/* No offset */
-	dw_writel(dev, hcnt, DW_IC_SS_SCL_HCNT);
-	dw_writel(dev, lcnt, DW_IC_SS_SCL_LCNT);
-	dev_dbg(dev->dev, "Standard-mode HCNT:LCNT = %d:%d\n", hcnt, lcnt);
 
+	dw_writel(dev, dev->platdata.ss_hcnt, DW_IC_SS_SCL_HCNT);
+	dw_writel(dev, dev->platdata.ss_lcnt, DW_IC_SS_SCL_LCNT);
+	dev_dbg(dev->dev, "Standard-mode HCNT:LCNT = %d:%d\n",
+		dev->platdata.ss_hcnt, dev->platdata.ss_lcnt);
+	
 	/* Fast-mode */
-	hcnt = i2c_dw_scl_hcnt(input_clock_khz,
+	if(!dev->platdata.fs_hcnt)
+		dev->platdata.fs_hcnt = i2c_dw_scl_hcnt(input_clock_khz,
 				6,	/* tHD;STA = tHIGH = 0.6 us */
 				3,	/* tf = 0.3 us */
 				0,	/* 0: DW default, 1: Ideal */
 				0);	/* No offset */
-	lcnt = i2c_dw_scl_lcnt(input_clock_khz,
+	if(!dev->platdata.fs_lcnt)
+		dev->platdata.fs_lcnt = i2c_dw_scl_lcnt(input_clock_khz,
 				13,	/* tLOW = 1.3 us */
 				3,	/* tf = 0.3 us */
 				0);	/* No offset */
-	dw_writel(dev, hcnt, DW_IC_FS_SCL_HCNT);
-	dw_writel(dev, lcnt, DW_IC_FS_SCL_LCNT);
-	dev_dbg(dev->dev, "Fast-mode HCNT:LCNT = %d:%d\n", hcnt, lcnt);
+
+	dw_writel(dev, dev->platdata.fs_hcnt, DW_IC_FS_SCL_HCNT);
+	dw_writel(dev, dev->platdata.fs_lcnt, DW_IC_FS_SCL_LCNT);
+	dev_dbg(dev->dev, "Fast-mode HCNT:LCNT = %d:%d\n",
+		dev->platdata.fs_hcnt, dev->platdata.fs_lcnt);
 
 	/* Configure Tx/Rx FIFO threshold levels */
 	dw_writel(dev, dev->tx_fifo_depth - 1, DW_IC_TX_TL);
