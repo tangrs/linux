@@ -13,6 +13,8 @@
 #define NSPIRE_CLKDEV_H
 
 struct clk {
+	void (*get_rate)(struct clk *clk);
+	void (*set_rate)(struct clk *clk);
 	unsigned long rate;
 };
 
