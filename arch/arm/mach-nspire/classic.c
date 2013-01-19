@@ -26,9 +26,42 @@
 #include <asm/exception.h>
 
 #include <mach/nspire_mmio.h>
+#include <mach/clkdev.h>
 #include <mach/irqs.h>
 
 #include "common.h"
+
+/* Clock */
+
+union reg_clk_speed {
+	unsigned long raw;
+	struct {
+		unsigned long __padding0:1;
+		unsigned long base_cpu_ratio:7;
+		unsigned long is_base_27mhz:1;
+		unsigned long __padding1:3;
+		unsigned long cpu_ahb_ratio:3;
+		unsigned long __padding2:1;
+		unsigned long base_val:5;
+	} val;
+};
+
+static void ahb_get_speed(struct clk *clk)
+{
+	union reg_clk_speed reg;
+	unsigned base, cpu;
+
+	reg.raw = readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x00));
+	reg.val.base_cpu_ratio *= 2;
+	reg.val.cpu_ahb_ratio++;
+
+	BUG_ON(reg.val.base_cpu_ratio == 0);
+
+	base = reg.val.is_base_27mhz ? 27 : (300 - (6*reg.val.base_val));
+	cpu = base / reg.val.base_cpu_ratio;
+
+	clk->rate = (cpu / reg.val.cpu_ahb_ratio) * 1000000;
+}
 
 /* Interrupt handling */
 
@@ -282,6 +315,13 @@ AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 	{ NSPIRE_IRQ_LCD }, &classic_clcd_data);
 
 /* Init */
+void __init nspire_classic_init_early(void)
+{
+	nspire_set_ahb_callback(ahb_get_speed, NULL);
+
+	nspire_init_early();
+}
+
 void __init nspire_classic_init(void)
 {
 	/*

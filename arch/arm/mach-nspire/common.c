@@ -35,25 +35,44 @@
 #include "clock.h"
 
 /* Clocks */
+
+/* AHB clock */
+static void ahb_get_dummy(struct clk *clk)
+{
+	/* Platform specific code needs to override this */
+	BUG();
+}
+
+static struct clk ahb_clk = {
+	.get_rate = ahb_get_dummy,
+};
+
+void nspire_set_ahb_callback(void (*getter)(struct clk *),
+		int (*setter)(struct clk *, unsigned long))
+{
+	ahb_clk.get_rate = getter;
+	ahb_clk.set_rate = setter;
+}
+
+/* APB clock */
+
+static void apb_get_rate(struct clk *clk)
+{
+	clk->rate = clk_get_rate(&ahb_clk) / 2;
+}
+
+static struct clk apb_clk = {
+	.get_rate = apb_get_rate
+};
+
+/* Misc */
+
 static struct clk systimer_clk = {
 	.rate	= 32768,
 };
 
 static struct clk uart_clk = {
 	.rate	= 12000000,
-};
-
-static struct clk ahb_clk = {
-	.rate	= 66000000,
-};
-
-static void apb_get_rate(struct clk *clk)
-{
-	clk->rate = clk_get_rate(&ahb_clk);
-}
-
-static struct clk apb_clk = {
-	.get_rate = apb_get_rate
 };
 
 #ifdef CONFIG_MACH_NSPIRECX

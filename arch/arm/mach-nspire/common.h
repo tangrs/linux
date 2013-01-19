@@ -48,3 +48,6 @@ int nspire_clcd_mmap(struct clcd_fb *fb, struct vm_area_struct *vma);
 void nspire_clcd_remove(struct clcd_fb *fb);
 int nspire_clcd_setup(struct clcd_fb *fb, unsigned panel_size,
 	struct clcd_panel * panel);
+
+void nspire_set_ahb_callback(void (*getter)(struct clk *),
+	int (*setter)(struct clk *, unsigned long));

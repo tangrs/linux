@@ -9,6 +9,8 @@
  *
  */
 
+#include <asm-generic/errno.h>
+
 #include <mach/clkdev.h>
 
 void clk_disable(struct clk *clk)
@@ -31,8 +33,7 @@ unsigned long clk_get_rate(struct clk *clk)
 int clk_set_rate(struct clk *clk, unsigned long rate)
 {
 	if (clk->set_rate)
-		clk->set_rate(clk);
+		return clk->set_rate(clk, rate);
 
-	clk->rate = rate;
-	return 0;
+	return -ENOSYS;
 }

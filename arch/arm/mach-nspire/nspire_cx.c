@@ -39,18 +39,52 @@
 #include "common.h"
 #include "touchpad.h"
 
-/**************** IRQ ****************/
+/* Clock */
+
+union reg_clk_speed {
+	unsigned long raw;
+	struct {
+		unsigned long __padding0:1;
+		unsigned long base_cpu_ratio:7;
+		unsigned long is_base_48mhz:1;
+		unsigned long __padding1:3;
+		unsigned long cpu_ahb_ratio:3;
+		unsigned long base_val:6;
+		unsigned long unknown:2;
+	} val;
+};
+
+static void ahb_get_speed(struct clk *clk)
+{
+	union reg_clk_speed reg;
+	unsigned base, cpu;
+
+	reg.raw = readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x00));
+	if (reg.val.unknown != 0b01)
+		reg.val.base_cpu_ratio *= 2;
+	reg.val.cpu_ahb_ratio++;
+
+	BUG_ON(reg.val.base_cpu_ratio == 0);
+
+	base = reg.val.is_base_48mhz ? 48 : 6*reg.val.base_val;
+	cpu = base / reg.val.base_cpu_ratio;
+
+	clk->rate = (cpu / reg.val.cpu_ahb_ratio) * 1000000;
+	pr_info("AHB speed detected as %lu\n", clk->rate);
+}
+
+/* IRQ */
 static void __init cx_init_irq(void)
 {
 	vic_init(IOMEM(NSPIRE_INTERRUPT_VIRT_BASE), 0, NSPIRE_IRQ_MASK, 0);
 }
 
-/**************** UART **************/
+/* UART */
 
 static AMBA_APB_DEVICE(uart, "uart", 0, NSPIRE_APB_PHYS(NSPIRE_APB_UART),
 	{ NSPIRE_IRQ_UART }, NULL);
 
-/**************** TIMER ****************/
+/* TIMER */
 
 void __init cx_timer_init(void)
 {
@@ -62,7 +96,7 @@ static struct sys_timer cx_sys_timer = {
 	.init = cx_timer_init,
 };
 
-/************** FRAMEBUFFER **************/
+/* FRAMEBUFFER */
 static struct clcd_panel cx_lcd_panel = {
 	.mode		= {
 		.name		= "color lcd",
@@ -129,7 +163,7 @@ static struct clcd_board cx_clcd_data = {
 static AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 	{ NSPIRE_IRQ_LCD }, &cx_clcd_data);
 
-/************** USB HOST *************/
+/* USB HOST */
 
 static __init int cx_usb_init(void)
 {
@@ -183,7 +217,7 @@ out:
 	return err;
 }
 
-/*************** I2C ***************/
+/* I2C */
 
 static struct resource i2c_resources[] = {
 	{
@@ -217,7 +251,8 @@ static struct platform_device i2c_device = {
 #define CX_BACKLIGHT_UPPER	0x1d0
 #define CX_BACKLIGHT_LOWER	0x100 /* Should be (around about) off */
 
-static void cx_set_backlight(int val) {
+static void cx_set_backlight(int val)
+{
 	val += CX_BACKLIGHT_LOWER;
 
 	if (val <= CX_BACKLIGHT_UPPER)
@@ -225,7 +260,7 @@ static void cx_set_backlight(int val) {
 }
 
 static struct generic_bl_info cx_bl = {
-	.name 		= "nspire_backlight",
+	.name		= "nspire_backlight",
 	.max_intensity	= CX_BACKLIGHT_UPPER - CX_BACKLIGHT_LOWER,
 	.default_intensity = (CX_BACKLIGHT_UPPER - CX_BACKLIGHT_LOWER) / 2,
 	.set_bl_intensity = cx_set_backlight
@@ -239,9 +274,15 @@ static struct platform_device bl_device = {
 	}
 };
 
-/************** INIT ***************/
+/* Init */
 
 extern bool cx_use_otg;
+
+static void __init cx_early_init(void)
+{
+	nspire_set_ahb_callback(ahb_get_speed, NULL);
+	nspire_init_early();
+}
 
 static void __init cx_init(void)
 {
@@ -276,7 +317,7 @@ MACHINE_START(NSPIRECX, "TI-NSPIRE CX Calculator")
 	.init_irq	= cx_init_irq,
 	.handle_irq	= vic_handle_irq,
 	.timer		= &cx_sys_timer,
-	.init_early	= nspire_init_early,
+	.init_early	= cx_early_init,
 	.init_machine	= cx_init,
 	.init_late	= cx_init_late,
 	.restart	= nspire_restart,
