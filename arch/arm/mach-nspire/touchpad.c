@@ -22,9 +22,9 @@ static struct i2c_board_info synaptics_i2c = {
 
 void __init nspire_touchpad_init()
 {
-	i2c_register_board_info(0, &synaptics_i2c,1);
+	i2c_register_board_info(0, &synaptics_i2c, 1);
 }
 
 #else
-inline void nspire_touchpad_init(){}
+inline void nspire_touchpad_init() {}
 #endif
