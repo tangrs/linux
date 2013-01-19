@@ -19,6 +19,7 @@
 #include <linux/dma-mapping.h>
 
 #include <mach/nspire_mmio.h>
+#include <mach/nspire_clock.h>
 #include <mach/irqs.h>
 #include <mach/clkdev.h>
 #include <mach/keypad.h>
@@ -36,58 +37,29 @@
 
 /* Clocks */
 
-/* CPU0 clock */
-
-void (*nspire_cpu_get_rate)(struct clk *);
-int (*nspire_cpu_set_rate)(struct clk *, unsigned long);
-
-static void cpu_get_rate(struct clk *clk)
-{
-	if (nspire_cpu_get_rate) {
-		nspire_cpu_get_rate(clk);
-		return;
-	}
-	pr_warn("Could not get CPU0 clock speed\n");
-}
-
-static int cpu_set_rate(struct clk *clk, unsigned long rate)
-{
-	if (nspire_cpu_set_rate)
-		return nspire_cpu_set_rate(clk, rate);
-
-	return -ENOSYS;
-}
-
-static struct clk cpu_clk = {
-	.get_rate = cpu_get_rate,
-	.set_rate = cpu_set_rate
-};
+struct nspire_clk_speeds (*nspire_io_to_clocks)(unsigned long);
+struct nspire_clk_speeds (*nspire_clocks_to_io)(struct nspire_clk_speeds *);
 
 /* AHB clock */
-
-void (*nspire_ahb_get_rate)(struct clk *);
-int (*nspire_ahb_set_rate)(struct clk *, unsigned long);
-
 static void ahb_get_rate(struct clk *clk)
 {
-	if (nspire_ahb_get_rate) {
-		nspire_ahb_get_rate(clk);
-		return;
-	}
-	pr_warn("Could not get AHB clock speed\n");
-}
-
-static int ahb_set_rate(struct clk *clk, unsigned long rate)
-{
-	if (nspire_ahb_set_rate)
-		return nspire_ahb_set_rate(clk, rate);
-
-	return -ENOSYS;
+	struct nspire_clk_speeds speeds = nspire_get_clocks();
+	clk->rate = speeds.ahb;
 }
 
 static struct clk ahb_clk = {
 	.get_rate = ahb_get_rate,
-	.set_rate = ahb_set_rate
+};
+
+/* CPU clock */
+static void cpu_get_rate(struct clk *clk)
+{
+	struct nspire_clk_speeds speeds = nspire_get_clocks();
+	clk->rate = speeds.cpu;
+}
+
+static struct clk cpu_clk = {
+	.get_rate = cpu_get_rate,
 };
 
 /* APB clock */

@@ -83,3 +83,10 @@ config ARM_SPEAR_CPUFREQ
 	default y
 	help
 	  This adds the CPUFreq driver support for SPEAr SOCs.
+
+config ARM_NSPIRE_CPUFREQ
+	bool "TI-NSPIRE CPUFreq support"
+	depends on ARCH_NSPIRE
+	default y
+	help
+	  This adds the CPUFreq driver support for the TI-NSPIRE.

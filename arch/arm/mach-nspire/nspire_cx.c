@@ -24,6 +24,7 @@
 #include <linux/platform_data/i2c-designware.h>
 
 #include <mach/nspire_mmio.h>
+#include <mach/nspire_clock.h>
 #include <mach/irqs.h>
 #include <mach/clkdev.h>
 #include <mach/sram.h>
@@ -54,19 +55,12 @@ union reg_clk_speed {
 	} val;
 };
 
-
-struct clk_speeds {
-	unsigned long cpu;
-	unsigned long base;
-	unsigned long ahb;
-};
-
-static struct clk_speeds get_clks(void)
+static struct nspire_clk_speeds cx_io_to_clocks(unsigned long val)
 {
-	struct clk_speeds clks;
+	struct nspire_clk_speeds clks;
 	union reg_clk_speed reg;
 
-	reg.raw = readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x00));
+	reg.raw = val;
 	if (reg.val.unknown != 0b01)
 		reg.val.base_cpu_ratio *= 2;
 	reg.val.cpu_ahb_ratio++;
@@ -80,22 +74,6 @@ static struct clk_speeds get_clks(void)
 	clks.ahb = clks.cpu / reg.val.cpu_ahb_ratio;
 
 	return clks;
-}
-
-static void ahb_get_speed(struct clk *clk)
-{
-	struct clk_speeds clks = get_clks();
-	clk->rate = clks.ahb;
-
-	pr_info("AHB speed = %luHz\n", clk->rate);
-}
-
-static void cpu_get_speed(struct clk *clk)
-{
-	struct clk_speeds clks = get_clks();
-	clk->rate = clks.cpu;
-
-	pr_info("CPU speed = %luHz\n", clk->rate);
 }
 
 /* IRQ */
@@ -305,8 +283,7 @@ extern bool cx_use_otg;
 
 static void __init cx_early_init(void)
 {
-	nspire_ahb_get_rate = ahb_get_speed;
-	nspire_cpu_get_rate = cpu_get_speed;
+	nspire_io_to_clocks = cx_io_to_clocks;
 
 	nspire_init_early();
 }

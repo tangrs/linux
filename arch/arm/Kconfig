@@ -478,6 +478,7 @@ config ARCH_NSPIRE
 	select USB_ARCH_HAS_EHCI
 	select ARCH_WANT_OPTIONAL_GPIOLIB
 	select GENERIC_ALLOCATOR
+	select ARCH_HAS_CPUFREQ
 	help
 	  This enables support for systems using the TI-NSPIRE CPU
 

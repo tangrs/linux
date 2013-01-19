@@ -26,6 +26,7 @@
 #include <asm/exception.h>
 
 #include <mach/nspire_mmio.h>
+#include <mach/nspire_clock.h>
 #include <mach/clkdev.h>
 #include <mach/irqs.h>
 
@@ -46,17 +47,11 @@ union reg_clk_speed {
 	} val;
 };
 
-struct clk_speeds {
-	unsigned long cpu;
-	unsigned long base;
-	unsigned long ahb;
-};
-
-static struct clk_speeds get_clks(void) {
-	struct clk_speeds clks;
+static struct nspire_clk_speeds classic_io_to_clocks(unsigned long val) {
+	struct nspire_clk_speeds clks;
 	union reg_clk_speed reg;
 
-	reg.raw = readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x00));
+	reg.raw = val;
 	reg.val.base_cpu_ratio *= 2;
 	reg.val.cpu_ahb_ratio++;
 
@@ -69,18 +64,6 @@ static struct clk_speeds get_clks(void) {
 	clks.ahb = (clks.cpu / reg.val.cpu_ahb_ratio);
 
 	return clks;
-}
-
-static void ahb_get_speed(struct clk *clk)
-{
-	struct clk_speeds clks = get_clks();
-	clk->rate = clks.ahb;
-}
-
-static void cpu_get_speed(struct clk *clk)
-{
-	struct clk_speeds clks = get_clks();
-	clk->rate = clks.cpu;
 }
 
 /* Interrupt handling */
@@ -337,8 +320,7 @@ AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 /* Init */
 void __init nspire_classic_init_early(void)
 {
-	nspire_ahb_get_rate = ahb_get_speed;
-	nspire_cpu_get_rate = cpu_get_speed;
+	nspire_io_to_clocks = classic_io_to_clocks;
 
 	nspire_init_early();
 }
