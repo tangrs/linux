@@ -46,10 +46,15 @@ union reg_clk_speed {
 	} val;
 };
 
-static void ahb_get_speed(struct clk *clk)
-{
+struct clk_speeds {
+	unsigned long cpu;
+	unsigned long base;
+	unsigned long ahb;
+};
+
+static struct clk_speeds get_clks(void) {
+	struct clk_speeds clks;
 	union reg_clk_speed reg;
-	unsigned base, cpu;
 
 	reg.raw = readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x00));
 	reg.val.base_cpu_ratio *= 2;
@@ -57,10 +62,25 @@ static void ahb_get_speed(struct clk *clk)
 
 	BUG_ON(reg.val.base_cpu_ratio == 0);
 
-	base = reg.val.is_base_27mhz ? 27 : (300 - (6*reg.val.base_val));
-	cpu = base / reg.val.base_cpu_ratio;
+	clks.base = reg.val.is_base_27mhz ? 27 : (300 - (6*reg.val.base_val));
+	clks.base *= 1000000; /* Convert to Hz */
 
-	clk->rate = (cpu / reg.val.cpu_ahb_ratio) * 1000000;
+	clks.cpu = clks.base / reg.val.base_cpu_ratio;
+	clks.ahb = (clks.cpu / reg.val.cpu_ahb_ratio);
+
+	return clks;
+}
+
+static void ahb_get_speed(struct clk *clk)
+{
+	struct clk_speeds clks = get_clks();
+	clk->rate = clks.ahb;
+}
+
+static void cpu_get_speed(struct clk *clk)
+{
+	struct clk_speeds clks = get_clks();
+	clk->rate = clks.cpu;
 }
 
 /* Interrupt handling */
@@ -317,7 +337,8 @@ AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 /* Init */
 void __init nspire_classic_init_early(void)
 {
-	nspire_set_ahb_callback(ahb_get_speed, NULL);
+	nspire_ahb_get_rate = ahb_get_speed;
+	nspire_cpu_get_rate = cpu_get_speed;
 
 	nspire_init_early();
 }

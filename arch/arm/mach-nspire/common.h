@@ -49,5 +49,8 @@ void nspire_clcd_remove(struct clcd_fb *fb);
 int nspire_clcd_setup(struct clcd_fb *fb, unsigned panel_size,
 	struct clcd_panel * panel);
 
-void nspire_set_ahb_callback(void (*getter)(struct clk *),
-	int (*setter)(struct clk *, unsigned long));
+extern void (*nspire_cpu_get_rate)(struct clk *);
+extern int (*nspire_cpu_set_rate)(struct clk *, unsigned long);
+
+extern void (*nspire_ahb_get_rate)(struct clk *);
+extern int (*nspire_ahb_set_rate)(struct clk *, unsigned long);

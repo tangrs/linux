@@ -36,23 +36,59 @@
 
 /* Clocks */
 
-/* AHB clock */
-static void ahb_get_dummy(struct clk *clk)
+/* CPU0 clock */
+
+void (*nspire_cpu_get_rate)(struct clk *);
+int (*nspire_cpu_set_rate)(struct clk *, unsigned long);
+
+static void cpu_get_rate(struct clk *clk)
 {
-	/* Platform specific code needs to override this */
-	BUG();
+	if (nspire_cpu_get_rate) {
+		nspire_cpu_get_rate(clk);
+		return;
+	}
+	pr_warn("Could not get CPU0 clock speed\n");
+}
+
+static int cpu_set_rate(struct clk *clk, unsigned long rate)
+{
+	if (nspire_cpu_set_rate)
+		return nspire_cpu_set_rate(clk, rate);
+
+	return -ENOSYS;
+}
+
+static struct clk cpu_clk = {
+	.get_rate = cpu_get_rate,
+	.set_rate = cpu_set_rate
+};
+
+/* AHB clock */
+
+void (*nspire_ahb_get_rate)(struct clk *);
+int (*nspire_ahb_set_rate)(struct clk *, unsigned long);
+
+static void ahb_get_rate(struct clk *clk)
+{
+	if (nspire_ahb_get_rate) {
+		nspire_ahb_get_rate(clk);
+		return;
+	}
+	pr_warn("Could not get AHB clock speed\n");
+}
+
+static int ahb_set_rate(struct clk *clk, unsigned long rate)
+{
+	if (nspire_ahb_set_rate)
+		return nspire_ahb_set_rate(clk, rate);
+
+	return -ENOSYS;
 }
 
 static struct clk ahb_clk = {
-	.get_rate = ahb_get_dummy,
+	.get_rate = ahb_get_rate,
+	.set_rate = ahb_set_rate
 };
-
-void nspire_set_ahb_callback(void (*getter)(struct clk *),
-		int (*setter)(struct clk *, unsigned long))
-{
-	ahb_clk.get_rate = getter;
-	ahb_clk.set_rate = setter;
-}
 
 /* APB clock */
 
@@ -83,6 +119,10 @@ static struct clk i2c_clk = {
 #endif
 
 static struct clk_lookup nspire_clk_lookup[] = {
+	{
+		.dev_id = "cpu",
+		.clk = &cpu_clk
+	},
 	{
 		.dev_id = "uart",
 		.clk = &uart_clk
