@@ -61,8 +61,7 @@ static struct nspire_clk_speeds cx_io_to_clocks(unsigned long val)
 	union reg_clk_speed reg;
 
 	reg.raw = val;
-	if (reg.val.unknown != 0b01)
-		reg.val.base_cpu_ratio *= 2;
+	reg.val.base_cpu_ratio *= reg.val.unknown;
 	reg.val.cpu_ahb_ratio++;
 
 	BUG_ON(reg.val.base_cpu_ratio == 0);
@@ -70,10 +69,27 @@ static struct nspire_clk_speeds cx_io_to_clocks(unsigned long val)
 	clks.base = reg.val.is_base_48mhz ? 48 : 6*reg.val.base_val;
 	clks.base *= 1000000; /* Convert to Hz */
 
-	clks.cpu = clks.base / reg.val.base_cpu_ratio;
-	clks.ahb = clks.cpu / reg.val.cpu_ahb_ratio;
+	clks.div.base_cpu = reg.val.base_cpu_ratio;
+	clks.div.cpu_ahb = reg.val.cpu_ahb_ratio;
 
 	return clks;
+}
+
+static unsigned long cx_clocks_to_io(struct nspire_clk_speeds *clks)
+{
+	union reg_clk_speed reg;
+
+	BUG_ON(clks->div.base_cpu < 1);
+	BUG_ON(clks->div.cpu_ahb < 1);
+
+	reg.raw = 0;
+	reg.val.unknown = (clks->div.base_cpu & 0x1) ? 0b01 : 0b10;
+	reg.val.base_cpu_ratio = clks->div.base_cpu / reg.val.unknown;
+	reg.val.cpu_ahb_ratio = clks->div.cpu_ahb - 1;
+	reg.val.is_base_48mhz = (clks->base <= 48000000);
+	reg.val.base_val = (clks->base / 6000000);
+
+	return reg.raw;
 }
 
 /* IRQ */
@@ -284,6 +300,7 @@ extern bool cx_use_otg;
 static void __init cx_early_init(void)
 {
 	nspire_io_to_clocks = cx_io_to_clocks;
+	nspire_clocks_to_io = cx_clocks_to_io;
 
 	nspire_init_early();
 }

@@ -47,7 +47,8 @@ union reg_clk_speed {
 	} val;
 };
 
-static struct nspire_clk_speeds classic_io_to_clocks(unsigned long val) {
+static struct nspire_clk_speeds classic_io_to_clocks(unsigned long val)
+{
 	struct nspire_clk_speeds clks;
 	union reg_clk_speed reg;
 
@@ -60,10 +61,26 @@ static struct nspire_clk_speeds classic_io_to_clocks(unsigned long val) {
 	clks.base = reg.val.is_base_27mhz ? 27 : (300 - (6*reg.val.base_val));
 	clks.base *= 1000000; /* Convert to Hz */
 
-	clks.cpu = clks.base / reg.val.base_cpu_ratio;
-	clks.ahb = (clks.cpu / reg.val.cpu_ahb_ratio);
+	clks.div.base_cpu = reg.val.base_cpu_ratio;
+	clks.div.cpu_ahb = reg.val.cpu_ahb_ratio;
 
 	return clks;
+}
+
+static unsigned long classic_clocks_to_io(struct nspire_clk_speeds *clks)
+{
+	union reg_clk_speed reg;
+
+	BUG_ON(clks->div.base_cpu < 2);
+	BUG_ON(clks->div.cpu_ahb < 1);
+
+	reg.raw = 0;
+	reg.val.base_cpu_ratio = clks->div.base_cpu / 2;
+	reg.val.cpu_ahb_ratio = clks->div.cpu_ahb - 1;
+	reg.val.is_base_27mhz = (clks->base <= 27000000);
+	reg.val.base_val = (300 - (clks->base / 1000000)) / 6;
+
+	return reg.raw;
 }
 
 /* Interrupt handling */
@@ -321,6 +338,7 @@ AMBA_AHB_DEVICE(fb, "fb", 0, NSPIRE_LCD_PHYS_BASE,
 void __init nspire_classic_init_early(void)
 {
 	nspire_io_to_clocks = classic_io_to_clocks;
+	nspire_clocks_to_io = classic_clocks_to_io;
 
 	nspire_init_early();
 }

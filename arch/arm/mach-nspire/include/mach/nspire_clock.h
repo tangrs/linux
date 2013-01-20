@@ -15,22 +15,39 @@
 #include <linux/io.h>
 
 #include <mach/nspire_mmio.h>
+#include <mach/nspire_cpufreq.h>
 
-struct nspire_clk_speeds {
-	unsigned long cpu;
-	unsigned long base;
-	unsigned long ahb;
+struct nspire_clk_divisors {
+	unsigned char base_cpu, cpu_ahb;
 };
 
+struct nspire_clk_speeds {
+	unsigned long base;
+	struct nspire_clk_divisors div;
+};
+
+#define CLK_GET_CPU(cs) ((cs)->base / (cs)->div.base_cpu)
+#define CLK_GET_AHB(cs) (CLK_GET_CPU(cs) / (cs)->div.cpu_ahb)
+
 extern struct nspire_clk_speeds (*nspire_io_to_clocks)(unsigned long);
-extern struct nspire_clk_speeds (*nspire_clocks_to_io)(
-		struct nspire_clk_speeds *);
+extern unsigned long (*nspire_clocks_to_io)(struct nspire_clk_speeds *);
 
 static inline struct nspire_clk_speeds nspire_get_clocks(void)
 {
 	unsigned long val = readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x00));
 	BUG_ON(!nspire_io_to_clocks);
 	return nspire_io_to_clocks(val);
+}
+
+static inline void nspire_set_clocks(struct nspire_clk_speeds *clks)
+{
+	unsigned long val;
+	BUG_ON(!nspire_io_to_clocks);
+
+	val = nspire_clocks_to_io(clks);
+
+	writel(val, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x00));
+	writel(4,   NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x0c));
 }
 
 #endif

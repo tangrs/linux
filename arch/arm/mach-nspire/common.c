@@ -38,28 +38,17 @@
 /* Clocks */
 
 struct nspire_clk_speeds (*nspire_io_to_clocks)(unsigned long);
-struct nspire_clk_speeds (*nspire_clocks_to_io)(struct nspire_clk_speeds *);
+unsigned long (*nspire_clocks_to_io)(struct nspire_clk_speeds *);
 
 /* AHB clock */
 static void ahb_get_rate(struct clk *clk)
 {
 	struct nspire_clk_speeds speeds = nspire_get_clocks();
-	clk->rate = speeds.ahb;
+	clk->rate = CLK_GET_AHB(&speeds);
 }
 
 static struct clk ahb_clk = {
 	.get_rate = ahb_get_rate,
-};
-
-/* CPU clock */
-static void cpu_get_rate(struct clk *clk)
-{
-	struct nspire_clk_speeds speeds = nspire_get_clocks();
-	clk->rate = speeds.cpu;
-}
-
-static struct clk cpu_clk = {
-	.get_rate = cpu_get_rate,
 };
 
 /* APB clock */
@@ -91,10 +80,6 @@ static struct clk i2c_clk = {
 #endif
 
 static struct clk_lookup nspire_clk_lookup[] = {
-	{
-		.dev_id = "cpu",
-		.clk = &cpu_clk
-	},
 	{
 		.dev_id = "uart",
 		.clk = &uart_clk

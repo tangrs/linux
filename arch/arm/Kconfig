@@ -479,6 +479,7 @@ config ARCH_NSPIRE
 	select ARCH_WANT_OPTIONAL_GPIOLIB
 	select GENERIC_ALLOCATOR
 	select ARCH_HAS_CPUFREQ
+	select CPU_FREQ_TABLE
 	help
 	  This enables support for systems using the TI-NSPIRE CPU
 
