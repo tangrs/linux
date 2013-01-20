@@ -19,6 +19,8 @@
 #include <linux/workqueue.h>
 #include <linux/slab.h>
 #include <linux/pm.h>
+#include <linux/notifier.h>
+#include <linux/reboot.h>
 
 #define DRIVER_NAME		"synaptics_i2c"
 /* maximum product id is 15 characters */
@@ -225,6 +227,7 @@ struct synaptics_i2c {
 	struct i2c_client	*client;
 	struct input_dev	*input;
 	struct delayed_work	dwork;
+	struct notifier_block	reboot_notifier;
 	spinlock_t		lock;
 	int			no_data_count;
 	int			no_decel_param;
@@ -550,6 +553,24 @@ static struct synaptics_i2c *synaptics_i2c_touch_create(struct i2c_client *clien
 	return touch;
 }
 
+
+static void uninit_device(struct synaptics_i2c *touch)
+{
+	synaptics_i2c_reg_set(touch->client, INTERRUPT_EN_REG, 0);
+	synaptics_i2c_reg_set(touch->client, DEV_COMMAND_REG, RESET_COMMAND);
+}
+
+static int reboot_notify(struct notifier_block * n, unsigned long code,
+		void *unused)
+{
+	struct synaptics_i2c *touch = container_of(n, struct synaptics_i2c,
+			reboot_notifier);
+
+	uninit_device(touch);
+
+	return 0;
+}
+
 static int synaptics_i2c_probe(struct i2c_client *client,
 			       const struct i2c_device_id *dev_id)
 {
@@ -604,6 +625,16 @@ static int synaptics_i2c_probe(struct i2c_client *client,
 		goto err_input_free;
 	}
 
+	touch->reboot_notifier.notifier_call = reboot_notify;
+	touch->reboot_notifier.priority = 0;
+
+	ret = register_reboot_notifier(&touch->reboot_notifier);
+	if (ret) {
+		dev_err(&client->dev,
+			 "Register reboot notifier failed: %d\n", ret);
+		goto err_input_free;
+	}
+
 	i2c_set_clientdata(client, touch);
 
 	return 0;
@@ -619,6 +650,9 @@ err_mem_free:
 static int synaptics_i2c_remove(struct i2c_client *client)
 {
 	struct synaptics_i2c *touch = i2c_get_clientdata(client);
+
+	unregister_reboot_notifier(&touch->reboot_notifier);
+	uninit_device(touch);
 
 	if (!polling_req)
 		free_irq(client->irq, touch);
