@@ -65,14 +65,17 @@ static int nspire_cpu_target(struct cpufreq_policy *policy,
 	struct nspire_clk_speeds clks = nspire_get_clocks();
 	struct cpufreq_freqs freqs;
 
-	if ( (ret = cpufreq_frequency_table_target(policy, freq_table,
-			target_freq, relation, &index)) ) return ret;
+	ret = cpufreq_frequency_table_target(policy, freq_table,
+			target_freq, relation, &index);
+	if (ret)
+		return ret;
 
 	freqs.old = CLK_GET_CPU(&clks) / 1000;
 	clks.div = safe_divisors[freq_table[index].index];
 	freqs.new = CLK_GET_CPU(&clks) / 1000;
 
-	if (freqs.old == freqs.new) return 0;
+	if (freqs.old == freqs.new)
+		return 0;
 
 	for_each_online_cpu(cpu) {
 		freqs.cpu = cpu;
@@ -100,14 +103,15 @@ static struct cpufreq_driver nspire_cpufreq_driver = {
 	.target		= nspire_cpu_target,
 };
 
-static irqreturn_t clockspeed_interrupt(int irq, void *dummy) {
+static irqreturn_t clockspeed_interrupt(int irq, void *dummy)
+{
 	if (!(readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14)) & (1<<1)))
-                return IRQ_NONE;
+		return IRQ_NONE;
 
-        /* Clear interrupts */
-        writel((1<<1), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
+	/* Clear interrupts */
+	writel((1<<1), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
 
-        return IRQ_HANDLED;
+	return IRQ_HANDLED;
 }
 
 static int __init nspire_cpufreq_init(void)
@@ -118,12 +122,12 @@ static int __init nspire_cpufreq_init(void)
 
 	/* We need a dummy void* priv for shared IRQs */
 	if (request_irq(NSPIRE_IRQ_PWR, clockspeed_interrupt, IRQF_SHARED,
-			"clockspeed", (void*)0xdeadbeef)) {
+			"clockspeed", (void *)0xdeadbeef)) {
 		pr_warn("Unable to get IRQ_PWR to ack clockspeed changes. "
 			"You may get IRQ disabled problems\n");
-        }
+	}
 
-	for (i=0; i<ARRAY_SIZE(safe_divisors); i++) {
+	for (i = 0; i < ARRAY_SIZE(safe_divisors); i++) {
 		freq_table[i].index = i;
 		freq_table[i].frequency =
 				(base_freq / 1000) / safe_divisors[i].base_cpu;
