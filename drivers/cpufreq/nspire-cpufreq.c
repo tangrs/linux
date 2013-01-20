@@ -13,8 +13,11 @@
 #include <linux/cpufreq.h>
 #include <linux/clk.h>
 #include <linux/err.h>
+#include <linux/interrupt.h>
+#include <linux/io.h>
 
 #include <mach/nspire_clock.h>
+#include <mach/irqs.h>
 
 /* This whole driver is a NOP - basically for reporting frequency only */
 /* TODO: actually implement frequency scaling */
@@ -97,11 +100,28 @@ static struct cpufreq_driver nspire_cpufreq_driver = {
 	.target		= nspire_cpu_target,
 };
 
+static irqreturn_t clockspeed_interrupt(int irq, void *dummy) {
+	if (!(readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14)) & (1<<1)))
+                return IRQ_NONE;
+
+        /* Clear interrupts */
+        writel((1<<1), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
+
+        return IRQ_HANDLED;
+}
+
 static int __init nspire_cpufreq_init(void)
 {
 	struct nspire_clk_speeds clks = nspire_get_clocks();
 	unsigned long base_freq = clks.base;
 	int i;
+
+	/* We need a dummy void* priv for shared IRQs */
+	if (request_irq(NSPIRE_IRQ_PWR, clockspeed_interrupt, IRQF_SHARED,
+			"clockspeed", (void*)0xdeadbeef)) {
+		pr_warn("Unable to get IRQ_PWR to ack clockspeed changes. "
+			"You may get IRQ disabled problems\n");
+        }
 
 	for (i=0; i<ARRAY_SIZE(safe_divisors); i++) {
 		freq_table[i].index = i;

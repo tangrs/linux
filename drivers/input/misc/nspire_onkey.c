@@ -34,11 +34,11 @@ static void onkey_poll(struct work_struct *work __attribute__((unused))) {
 }
 
 static irqreturn_t onkey_interrupt(int irq, void *dummy) {
-        if (!(readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14)) & 0x1))
+        if (!(readl(NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14)) & (1<<0)))
                 return IRQ_NONE;
 
         /* Clear interrupts */
-        writel(0x1, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
+        writel((1<<0), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
 
 	onkey_update();
 
@@ -49,10 +49,10 @@ static int __init onkey_init(void) {
         int err;
 
         /* Enable interrupts for power button */
-        writel(0x1, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x10));
+        writel((1<<0), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x10));
 
         /* Clear existing interrupts */
-        writel(0x1, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
+        writel((1<<0), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
 
         onkey_dev = input_allocate_device();
         if (!onkey_dev) {
@@ -69,10 +69,12 @@ static int __init onkey_init(void) {
                 goto err_free_dev;
         }
 
-        if (request_irq(NSPIRE_IRQ_PWR, onkey_interrupt, 0, "onkey", NULL)) {
+	/* We need a dummy void* priv for shared IRQs */
+        if (request_irq(NSPIRE_IRQ_PWR, onkey_interrupt, IRQF_SHARED,
+			"onkey", (void*)0xdeadbeef)) {
                 pr_err("Unable to allocate IRQ for power button\n");
                 err = -EBUSY;
-                goto err_free_irq;
+                goto err_free_dev;
         }
 
 	INIT_DELAYED_WORK(&polling_work, onkey_poll);
@@ -80,8 +82,6 @@ static int __init onkey_init(void) {
 	pr_info("TI-NSPIRE ON Key\n");
         return 0;
 
-err_free_irq:
-        free_irq(NSPIRE_IRQ_PWR, onkey_interrupt);
 err_free_dev:
         input_free_device(onkey_dev);
 
