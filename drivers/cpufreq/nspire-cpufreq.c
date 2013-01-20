@@ -89,9 +89,9 @@ static int nspire_cpu_target(struct cpufreq_policy *policy,
 		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
 	}
 
-	pr_info("CPU scaled: BASE = %luHz, CPU = %luHz, AHB = %luHz. "
+	/* pr_info("CPU scaled: BASE = %luHz, CPU = %luHz, AHB = %luHz. "
 		"Wrote %#08lX.\n", clks.base, CLK_GET_CPU(&clks),
-		CLK_GET_AHB(&clks), nspire_clocks_to_io(&clks));
+		CLK_GET_AHB(&clks), nspire_clocks_to_io(&clks)); */
 
 	return 0;
 }
