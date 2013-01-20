@@ -51,7 +51,7 @@ static int nspire_gpio_get(struct gpio_chip *chip, unsigned pin)
 {
 	/* Only reading allowed, so no spinlock needed */
 	uint16_t val = readw(NSPIRE_GPIO(pin, INPUT));
-		
+
 	return (val>>NSPIRE_GPIO_BIT(pin)) & 0x1;
 }
 
@@ -64,7 +64,7 @@ static void nspire_gpio_set(struct gpio_chip *chip, unsigned pin, int value)
 		val |= 1<<NSPIRE_GPIO_BIT(pin);
 	else
 		val &= ~(1<<NSPIRE_GPIO_BIT(pin));
-	
+
 	writew(val, NSPIRE_GPIO(pin, OUTPUT));
 	spin_unlock(&controller->lock);
 }
@@ -79,9 +79,9 @@ static int nspire_gpio_direction_input(struct gpio_chip *chip, unsigned pin)
 	val = readw(NSPIRE_GPIO(pin, DIRECTION));
 	val |= 1<<NSPIRE_GPIO_BIT(pin);
 	writew(val, NSPIRE_GPIO(pin, DIRECTION));
-	
+
 	spin_unlock(&controller->lock);
-	
+
 	return 0;
 }
 
@@ -98,7 +98,7 @@ static int nspire_gpio_direction_output(struct gpio_chip *chip,
 		val |= 1<<NSPIRE_GPIO_BIT(pin);
 	else
 		val &= ~(1<<NSPIRE_GPIO_BIT(pin));
-	
+
 	writew(val, NSPIRE_GPIO(pin, OUTPUT));
 	val = readw(NSPIRE_GPIO(pin, DIRECTION));
 	val &= ~(1<<NSPIRE_GPIO_BIT(pin));
@@ -111,7 +111,7 @@ static int nspire_gpio_direction_output(struct gpio_chip *chip,
 	else
 		val &= ~(1<<NSPIRE_GPIO_BIT(pin));
 	spin_unlock(&controller->lock);
-	
+
 	return 0;
 }
 
@@ -131,7 +131,7 @@ static struct gpio_chip nspire_gpio_chip = {
 };
 
 /* struct platform_driver functions */
-static int __devinit nspire_gpio_probe(struct platform_device *pdev)
+static int __init nspire_gpio_probe(struct platform_device *pdev)
 {
 	struct resource *res;
 	int irq, error;
@@ -141,7 +141,7 @@ static int __devinit nspire_gpio_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to get GPIO IRQ\n");
 		return -EINVAL;
 	}
-	
+
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!res) {
 		dev_err(&pdev->dev, "No memory resource given\n");
@@ -153,13 +153,13 @@ static int __devinit nspire_gpio_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Not enough memory available\n");
 		return -ENOMEM;
 	}
-	
+
 	if (!request_mem_region(res->start, resource_size(res), pdev->name)) {
 		dev_err(&pdev->dev, "I/O memory area busy\n");
 		error = -EBUSY;
 		goto err_free_mem;
 	}
-	
+
 	controller->base = ioremap(res->start, resource_size(res));
 	if (!controller->base) {
 		dev_err(&pdev->dev, "Failed to ioremap memory area\n");
@@ -190,7 +190,7 @@ static int __devinit nspire_gpio_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to add gpio_chip\n");
 		goto err_iounmap;
 	}
-	
+
 	platform_set_drvdata(pdev, controller);
 
 	printk(KERN_INFO "GPIO controller initialized!");
@@ -203,7 +203,7 @@ static int __devinit nspire_gpio_probe(struct platform_device *pdev)
 		release_mem_region(res->start, resource_size(res));
 	err_free_mem:
 		kfree(controller);
-		
+
 	return error;
 }
 

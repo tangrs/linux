@@ -179,7 +179,7 @@ err_free_mem:
 	return error;
 }
 
-static int __devexit nspire_keypad_remove(struct platform_device *pdev)
+static int nspire_keypad_remove(struct platform_device *pdev)
 {
 	struct nspire_keypad *keypad = platform_get_drvdata(pdev);
 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -200,7 +200,7 @@ static struct platform_driver nspire_keypad_driver = {
 		.name = "nspire-keypad",
 		.owner  = THIS_MODULE,
 	},
-	.remove = __devexit_p(nspire_keypad_remove),
+	.remove = nspire_keypad_remove,
 };
 
 static int __init nspire_keypad_init(void)
