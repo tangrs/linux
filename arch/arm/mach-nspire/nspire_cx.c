@@ -127,10 +127,14 @@ static struct clcd_panel cx_lcd_panel = {
 		.pixclock	= 1,
 		.hsync_len	= 1,
 		.vsync_len	= 1,
+		.right_margin	= 50,
+		.left_margin	= 38,
+		.lower_margin	= 3,
+		.upper_margin	= 17,
 	},
-	.width		= -1,
-	.height		= -1,
-	.tim2		= (TIM2_IVS | TIM2_IHS),
+	.width		= 65, /* ~6.50 cm */
+	.height		= 49, /* ~4.87 cm */
+	.tim2		= TIM2_IPC,
 	.cntl		= (CNTL_BGR | CNTL_LCDTFT | CNTL_LCDVCOMP(1) |
 				CNTL_LCDBPP16_565),
 	.bpp		= 16,
@@ -142,37 +146,9 @@ static int cx_clcd_setup(struct clcd_fb *fb)
 	return nspire_clcd_setup(fb, PANEL_SIZE, &cx_lcd_panel);
 }
 
-/*Own function to check, as we need to work around a bug(?) in clcdfb_check*/
-static int cx_clcd_check(struct clcd_fb *fb, struct fb_var_screeninfo *var)
-{
-	int clcdfb_check_res;
-
-	/*Only the values given above in struct clcd_panel make sense here*/
-#define WRONG(v) (var->v != fb->panel->mode.v)
-	if (WRONG(hsync_len) || WRONG(right_margin) || WRONG(left_margin))
-		return -EINVAL;
-#undef WRONG
-
-	/*clcdfb_check wants right_margin, left_margin and hsync_len
-	to be between (incl.) 6 and 256*/
-	var->left_margin = var->right_margin = var->hsync_len = 6;
-
-	clcdfb_check_res = clcdfb_check(fb, var);
-	if (clcdfb_check_res)
-		return clcdfb_check_res;
-
-#define SETRIGHT(v) (var->v = fb->panel->mode.v)
-	SETRIGHT(right_margin);
-	SETRIGHT(left_margin);
-	SETRIGHT(hsync_len);
-#undef SETRIGHT
-
-	return 0;
-}
-
 static struct clcd_board cx_clcd_data = {
 	.name		= "lcd controller",
-	.check		= cx_clcd_check,
+	.check		= clcdfb_check,
 	.decode		= clcdfb_decode,
 	.setup		= cx_clcd_setup,
 	.mmap		= nspire_clcd_mmap,

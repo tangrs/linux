@@ -308,9 +308,9 @@ static struct clcd_panel classic_lcd_panel = {
 		.right_margin	= 1,
 		.left_margin	= 1,
 	},
-	.width		= 320,
-	.height		= 240,
-	.tim2		= 0xd0,
+	.width		= 71, /* 7.11cm */
+	.height		= 53, /* 5.33cm */
+	.tim2		= 0x80007d0,
 	.cntl		= CNTL_LCDBPP4 | CNTL_LCDMONO8,
 	.bpp		= 4,
 	.grayscale	= 1
@@ -360,8 +360,5 @@ void __init nspire_classic_init(void)
 
 void __init nspire_classic_init_late(void)
 {
-	/* Set saner contrast */
-	writel(140, NSPIRE_APB_VIRTIO(NSPIRE_APB_CONTRAST + 0x20));
-	pr_info("Contrast set to 140\n");
 	nspire_init_late();
 }
