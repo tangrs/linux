@@ -131,7 +131,7 @@ static struct gpio_chip nspire_gpio_chip = {
 };
 
 /* struct platform_driver functions */
-static int __init nspire_gpio_probe(struct platform_device *pdev)
+static int nspire_gpio_probe(struct platform_device *pdev)
 {
 	struct resource *res;
 	int irq, error;
