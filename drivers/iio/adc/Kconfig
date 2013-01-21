@@ -115,6 +115,13 @@ config MAX1363
 	  max11646, max11647) Provides direct access via sysfs and buffered
 	  data via the iio dev interface.
 
+config NSPIRE_ADC
+	bool "NSPIRE ADC driver"
+	depends on ARCH_NSPIRE
+	help
+	  Say yes here to get access to various internal voltages
+	  of the TI NSPIRE series calculators.
+
 config TI_ADC081C
 	tristate "Texas Instruments ADC081C021/027"
 	depends on I2C

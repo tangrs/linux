@@ -29,7 +29,6 @@
 #include <asm/mach-types.h>
 #include <asm/mach/map.h>
 
-#include "adc.h"
 #include "common.h"
 #include "boot1.h"
 #include "contrast.h"
@@ -153,6 +152,18 @@ static struct platform_device nspire_gpio_device = {
 	.name		= "gpio-nspire",
 	.resource	= nspire_gpio_resources,
 	.num_resources	= ARRAY_SIZE(nspire_gpio_resources),
+};
+
+/* ADC */
+static struct resource nspire_adc_resources[] = {
+	RESOURCE_ENTRY_MEM(ADC),
+	RESOURCE_ENTRY_IRQ(ADC)
+};
+
+static struct platform_device nspire_adc_device = {
+	.name		= "nspire-adc",
+	.resource	= nspire_adc_resources,
+	.num_resources	= ARRAY_SIZE(nspire_adc_resources)
 };
 
 /* Framebuffer */
@@ -303,12 +314,12 @@ void __init nspire_init_early(void)
 /* Common init */
 void __init nspire_init(void)
 {
-	adc_init();
 	sram_init(NSPIRE_SRAM_PHYS_BASE, NSPIRE_SRAM_SIZE);
 	amba_device_register(&watchdog_device, &iomem_resource);
 
 	platform_device_register(&nspire_gpio_device);
 	platform_device_register(&nspire_rtc_device);
+	platform_device_register(&nspire_adc_device);
 
 	if (!machine_is_nspirecx() || cx_use_otg) {
 		platform_device_register(&otg_device);
@@ -318,7 +329,6 @@ void __init nspire_init(void)
 
 void __init nspire_init_late(void)
 {
-	adc_procfs_init();
 	boot1_procfs_init();
 	contrast_procfs_init();
 }
