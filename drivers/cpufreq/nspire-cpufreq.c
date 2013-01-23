@@ -19,10 +19,11 @@
 #include <mach/nspire_clock.h>
 #include <mach/irqs.h>
 
-/* This whole driver is a NOP - basically for reporting frequency only */
-/* TODO: actually implement frequency scaling */
+/* Values taken from Nover. Keep them conservative */
+#define AHB_SAFE_MAX_KHZ	66000
+#define AHB_SAFE_MIN_KHZ	22000
 
-static struct nspire_clk_divisors safe_divisors[] = {
+static struct nspire_clk_divider safe_divider[] = {
 	{ .base_cpu = 2,	.cpu_ahb = 2 },
 	{ .base_cpu = 4,	.cpu_ahb = 1 },
 };
@@ -30,7 +31,7 @@ static struct nspire_clk_divisors safe_divisors[] = {
 struct clk *cpu_clk;
 atomic_t num_cpus;
 
-static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(safe_divisors)+1];
+static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(safe_divider)+1];
 
 static inline unsigned long nspire_get_cpufreq(void)
 {
@@ -71,7 +72,7 @@ static int nspire_cpu_target(struct cpufreq_policy *policy,
 		return ret;
 
 	freqs.old = CLK_GET_CPU(&clks) / 1000;
-	clks.div = safe_divisors[freq_table[index].index];
+	clks.div = safe_divider[freq_table[index].index];
 	freqs.new = CLK_GET_CPU(&clks) / 1000;
 
 	if (freqs.old == freqs.new)
@@ -117,8 +118,24 @@ static irqreturn_t clockspeed_interrupt(int irq, void *dummy)
 static int __init nspire_cpufreq_init(void)
 {
 	struct nspire_clk_speeds clks = nspire_get_clocks();
-	unsigned long base_freq = clks.base;
+	unsigned long base_freq = clks.base / 1000;
 	int i;
+
+	for (i = 0; i < ARRAY_SIZE(safe_divider); i++) {
+		unsigned long cpu_freq = base_freq / safe_divider[i].base_cpu;
+		unsigned long ahb_freq = cpu_freq / safe_divider[i].cpu_ahb;
+
+		if (ahb_freq < AHB_SAFE_MIN_KHZ ||
+				ahb_freq > AHB_SAFE_MAX_KHZ) {
+			pr_warn("AHB frequency could get out of safe ranges. "
+				"CPUfreq driver will be disabled.\n");
+			return -EINVAL;
+		}
+
+		freq_table[i].index = i;
+		freq_table[i].frequency = cpu_freq;
+	}
+	freq_table[i].frequency = CPUFREQ_TABLE_END;
 
 	/* We need a dummy void* priv for shared IRQs */
 	if (request_irq(NSPIRE_IRQ_PWR, clockspeed_interrupt, IRQF_SHARED,
@@ -126,13 +143,6 @@ static int __init nspire_cpufreq_init(void)
 		pr_warn("Unable to get IRQ_PWR to ack clockspeed changes. "
 			"You may get IRQ disabled problems\n");
 	}
-
-	for (i = 0; i < ARRAY_SIZE(safe_divisors); i++) {
-		freq_table[i].index = i;
-		freq_table[i].frequency =
-				(base_freq / 1000) / safe_divisors[i].base_cpu;
-	}
-	freq_table[i].frequency = CPUFREQ_TABLE_END;
 
 	if (cpufreq_register_driver(&nspire_cpufreq_driver)) {
 		pr_err("Failed to register CPUFreq driver");

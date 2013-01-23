@@ -15,15 +15,14 @@
 #include <linux/io.h>
 
 #include <mach/nspire_mmio.h>
-#include <mach/nspire_cpufreq.h>
 
-struct nspire_clk_divisors {
+struct nspire_clk_divider {
 	unsigned char base_cpu, cpu_ahb;
 };
 
 struct nspire_clk_speeds {
 	unsigned long base;
-	struct nspire_clk_divisors div;
+	struct nspire_clk_divider div;
 };
 
 #define CLK_GET_CPU(cs) ((cs)->base / (cs)->div.base_cpu)
