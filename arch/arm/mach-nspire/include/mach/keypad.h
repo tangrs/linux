@@ -14,6 +14,7 @@
 
 struct nspire_keypad_data {
 	unsigned int (*evtcodes)[11];
+	bool active_low;
 };
 
 extern unsigned int nspire_touchpad_evtcode_map[][11];

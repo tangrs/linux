@@ -24,34 +24,46 @@ struct nspire_keypad {
 	int irq;
 	void __iomem *reg_base;
 	struct input_dev *input;
-	unsigned short keymap[8];
 	const struct nspire_keypad_data *pdata;
 	spinlock_t lock;
 };
 
+static inline void nspire_report_state(struct nspire_keypad *keypad,
+		int row, int col, unsigned state)
+{
+	state = keypad->pdata->active_low ? !state : !!state;
+
+	if (keypad->pdata->evtcodes[row][col]) {
+		input_report_key(keypad->input,
+				keypad->pdata->evtcodes[row][col],
+				state);
+	}
+
+}
+
 static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
 {
 	struct nspire_keypad *keypad = dev_id;
-	short current_state[8];
+	u16 current_state[8];
 	int i, j;
 
-	memcpy_fromio(current_state, keypad->reg_base + 0x10, sizeof(current_state));
+	spin_lock(&keypad->lock);
+
+	memcpy_fromio(current_state, keypad->reg_base + 0x10,
+		sizeof(current_state));
+
 	for (i = 0; i < 8; i++) {
-		short current_bits = current_state[i];
-		short last_bits = keypad->keymap[i];
+		u16 current_bits = current_state[i];
 		for (j = 0; j < 11; j++) {
-			if ((current_bits & (1<<j)) != (last_bits & (1<<j))) {
-				if (keypad->pdata->evtcodes[i][j]) {
-					/*printk(KERN_INFO "[%d %s]\n", keypad->pdata->evtcodes[i][j], current_bits & (1<<j) ? "u" : "d" );*/
-					input_report_key(keypad->input, keypad->pdata->evtcodes[i][j], !!(current_bits & (1<<j)));
-				}
-			}
+			nspire_report_state(keypad, i, j,
+					(current_bits & (1<<j)));
 		}
 	}
-	memcpy(keypad->keymap, current_state, sizeof(keypad->keymap));
 	input_sync(keypad->input);
-
 	writel(0b111, keypad->reg_base + 0x8);
+
+	spin_unlock(&keypad->lock);
+
 	return IRQ_HANDLED;
 }
 
@@ -59,11 +71,11 @@ static int nspire_keypad_chip_init(struct nspire_keypad *keypad)
 {
 	unsigned long val;
 
-	spin_lock(&keypad->lock);
-	memcpy_fromio(keypad->keymap, keypad->reg_base + 0x10, sizeof(keypad->keymap));
-
-	/* We can assume the bootloader (i.e. TI-NSPIRE software) has already initialized this */
-	/* Needs to be fixed if we're no longer booting in-place from NSPIRE software */
+	/*
+	 * We can assume the bootloader (i.e. TI-NSPIRE software) has
+	 * already initialized this. Needs to be fixed if we're no longer
+	 * booting in-place from TI-NSPIRE software.
+	 */
 	val = readl(keypad->reg_base);
 	val &= ~(0b11);
 	val |= 3; /* Set scan mode to 3 */
@@ -78,12 +90,10 @@ static int nspire_keypad_chip_init(struct nspire_keypad *keypad)
 	/* Acknowledge existing interrupts */
 	writel(~0, keypad->reg_base + 0x44);
 
-	spin_unlock(&keypad->lock);
-
 	return 0;
 }
 
-static int __init nspire_keypad_probe(struct platform_device *pdev)
+static int nspire_keypad_probe(struct platform_device *pdev)
 {
 	const struct nspire_keypad_data *plat = pdev->dev.platform_data;
 	struct nspire_keypad *keypad;
@@ -150,7 +160,8 @@ static int __init nspire_keypad_probe(struct platform_device *pdev)
 		goto err_iounmap;
 	}
 
-	error = request_irq(keypad->irq, nspire_keypad_irq, 0, "nspire_keypad", keypad);
+	error = request_irq(keypad->irq, nspire_keypad_irq, 0,
+			"nspire_keypad", keypad);
 	if (error) {
 		dev_err(&pdev->dev, "allocate irq %d failed\n", keypad->irq);
 		goto err_iounmap;
@@ -201,20 +212,10 @@ static struct platform_driver nspire_keypad_driver = {
 		.owner  = THIS_MODULE,
 	},
 	.remove = nspire_keypad_remove,
+	.probe = nspire_keypad_probe
 };
 
-static int __init nspire_keypad_init(void)
-{
-	pr_info("TI-NSPIRE keypad\n");
-	return platform_driver_probe(&nspire_keypad_driver, nspire_keypad_probe);
-}
-module_init(nspire_keypad_init);
-
-static void __exit nspire_keypad_exit(void)
-{
-	platform_driver_unregister(&nspire_keypad_driver);
-}
-module_exit(nspire_keypad_exit);
+module_platform_driver(nspire_keypad_driver);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("TI-NSPIRE Keypad Driver");

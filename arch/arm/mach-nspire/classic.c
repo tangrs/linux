@@ -28,6 +28,7 @@
 #include <mach/nspire_mmio.h>
 #include <mach/nspire_clock.h>
 #include <mach/clkdev.h>
+#include <mach/keypad.h>
 #include <mach/irqs.h>
 
 #include "common.h"
@@ -350,6 +351,8 @@ void __init nspire_classic_init(void)
 	 * accidental bricking.
 	 */
 	writel((1<<7), NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x18));
+
+	nspire_keypad_data.active_low = 1;
 
 	amba_device_register(&fb_device, &iomem_resource);
 	platform_device_register(&nspire_keypad_device);
