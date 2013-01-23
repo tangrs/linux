@@ -12,12 +12,15 @@
 #ifndef NSPIRE_KEYPAD_H
 #define NSPIRE_KEYPAD_H
 
+#define KEYPAD_BITMASK_COLS	11
+#define KEYPAD_BITMASK_ROWS	8
+
 struct nspire_keypad_data {
-	unsigned int (*evtcodes)[11];
+	unsigned int (*evtcodes)[KEYPAD_BITMASK_COLS];
 	bool active_low;
 };
 
-extern unsigned int nspire_touchpad_evtcode_map[][11];
-extern unsigned int nspire_clickpad_evtcode_map[][11];
+extern unsigned int nspire_touchpad_evtcode_map[][KEYPAD_BITMASK_COLS];
+extern unsigned int nspire_clickpad_evtcode_map[][KEYPAD_BITMASK_COLS];
 
 #endif

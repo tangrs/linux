@@ -52,9 +52,9 @@ static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
 	memcpy_fromio(current_state, keypad->reg_base + 0x10,
 		sizeof(current_state));
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < KEYPAD_BITMASK_ROWS; i++) {
 		u16 current_bits = current_state[i];
-		for (j = 0; j < 11; j++) {
+		for (j = 0; j < KEYPAD_BITMASK_COLS; j++) {
 			nspire_report_state(keypad, i, j,
 					(current_bits & (1<<j)));
 		}
@@ -99,8 +99,8 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 	struct nspire_keypad *keypad;
 	struct input_dev *input;
 	struct resource *res;
+	int i, j;
 	int irq;
-	int i;
 	int error;
 
 	if (!plat) {
@@ -149,10 +149,15 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 	input->id.bustype = BUS_HOST;
 	input->name = "nspire-keypad";
 	input->dev.parent = &pdev->dev;
-	input->evbit[0] = BIT_MASK(EV_KEY);
-	for (i = 1; i < 128; i++)
-		set_bit(i, input->keybit);
-	clear_bit(0, input->keybit);
+
+	set_bit(EV_KEY, input->evbit);
+	set_bit(EV_REP, input->evbit);
+
+	for (i = 0; i < KEYPAD_BITMASK_ROWS; i++) {
+		for (j = 0; j < KEYPAD_BITMASK_COLS; j++) {
+			set_bit(plat->evtcodes[i][j], input->keybit);
+		}
+	}
 
 	error = nspire_keypad_chip_init(keypad);
 	if (error) {

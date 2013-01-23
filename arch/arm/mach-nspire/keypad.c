@@ -11,7 +11,9 @@
 
 #include <linux/input.h>
 
-unsigned int nspire_touchpad_evtcode_map[][11] = {
+#include <mach/keypad.h>
+
+unsigned int nspire_touchpad_evtcode_map[][KEYPAD_BITMASK_COLS] = {
 	{
 		KEY_ENTER,	KEY_ENTER,	0,		0,
 		KEY_SPACE,	KEY_Z,		KEY_Y,		KEY_0,
@@ -54,7 +56,7 @@ unsigned int nspire_touchpad_evtcode_map[][11] = {
 	},
 };
 
-unsigned int nspire_clickpad_evtcode_map[][11] = {
+unsigned int nspire_clickpad_evtcode_map[][KEYPAD_BITMASK_COLS] = {
 	{
 		KEY_ENTER,	KEY_ENTER,	KEY_SPACE,	0,
 		KEY_Z,		KEY_DOT,	KEY_Y,		KEY_0,
