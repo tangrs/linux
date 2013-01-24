@@ -312,11 +312,11 @@ static struct clcd_panel classic_lcd_panel = {
 	.width		= 71, /* 7.11cm */
 	.height		= 53, /* 5.33cm */
 	.tim2		= 0x80007d0,
-	.cntl		= CNTL_LCDBPP4 | CNTL_LCDMONO8,
-	.bpp		= 4,
+	.cntl		= CNTL_LCDBPP8 | CNTL_LCDMONO8,
+	.bpp		= 8,
 	.grayscale	= 1
 };
-#define PANEL_SIZE 38400
+#define PANEL_SIZE (19 * SZ_4K)
 
 static int classic_clcd_setup(struct clcd_fb *fb)
 {

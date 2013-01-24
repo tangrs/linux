@@ -139,7 +139,7 @@ static struct clcd_panel cx_lcd_panel = {
 				CNTL_LCDBPP16_565),
 	.bpp		= 16,
 };
-#define PANEL_SIZE (3 * SZ_64K)
+#define PANEL_SIZE (38 * SZ_4K)
 
 static int cx_clcd_setup(struct clcd_fb *fb)
 {
