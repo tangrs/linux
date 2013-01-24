@@ -304,10 +304,10 @@ static struct clcd_panel classic_lcd_panel = {
 		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 		.vmode		= FB_VMODE_NONINTERLACED,
 		.pixclock	= 1,
-		.hsync_len	= 1,
+		.hsync_len	= 6,
 		.vsync_len	= 1,
-		.right_margin	= 1,
-		.left_margin	= 1,
+		.right_margin	= 6,
+		.left_margin	= 6,
 	},
 	.width		= 71, /* 7.11cm */
 	.height		= 53, /* 5.33cm */
