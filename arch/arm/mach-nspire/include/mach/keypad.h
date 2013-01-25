@@ -17,6 +17,11 @@
 
 struct nspire_keypad_data {
 	unsigned int (*evtcodes)[KEYPAD_BITMASK_COLS];
+
+	/* Maximum delay estimated assuming 33MHz APB */
+	unsigned short scan_interval; 	/* In microseconds (~2000us max) */
+	unsigned short row_delay; 	/* In microseconds (~500us max) */
+
 	bool active_low;
 };
 

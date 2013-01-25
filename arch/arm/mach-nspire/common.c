@@ -95,6 +95,10 @@ static struct clk_lookup nspire_clk_lookup[] = {
 		.dev_id = "watchdog",
 		.clk = &apb_clk
 	},
+	{
+		.dev_id = "nspire-keypad.0",
+		.clk = &apb_clk
+	},
 #ifdef CONFIG_MACH_NSPIRECX
 	{
 		.dev_id = "sp804",
@@ -125,7 +129,10 @@ static struct resource nspire_keypad_resources[] = {
 	RESOURCE_ENTRY_IRQ(KEYPAD)
 };
 
-struct nspire_keypad_data nspire_keypad_data;
+struct nspire_keypad_data nspire_keypad_data = {
+	.scan_interval	= 1000,
+	.row_delay	= 200
+};
 
 struct platform_device nspire_keypad_device = {
 	.name		= "nspire-keypad",

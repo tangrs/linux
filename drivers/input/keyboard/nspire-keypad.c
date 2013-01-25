@@ -23,7 +23,10 @@
 struct nspire_keypad {
 	int irq;
 	void __iomem *reg_base;
+	u32 int_mask;
+
 	struct input_dev *input;
+	struct clk *clk;
 	const struct nspire_keypad_data *pdata;
 	spinlock_t lock;
 };
@@ -47,6 +50,9 @@ static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
 	u16 current_state[8];
 	int i, j;
 
+	if (!(readl(keypad->reg_base + 0x8) & keypad->int_mask))
+		return IRQ_NONE;
+
 	spin_lock(&keypad->lock);
 
 	memcpy_fromio(current_state, keypad->reg_base + 0x10,
@@ -69,20 +75,32 @@ static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
 
 static int nspire_keypad_chip_init(struct nspire_keypad *keypad)
 {
-	unsigned long val;
+	unsigned long val = 0, cycles_per_us, delay_cycles, row_delay_cycles;
 
-	/*
-	 * We can assume the bootloader (i.e. TI-NSPIRE software) has
-	 * already initialized this. Needs to be fixed if we're no longer
-	 * booting in-place from TI-NSPIRE software.
-	 */
-	val = readl(keypad->reg_base);
-	val &= ~(0b11);
-	val |= 3; /* Set scan mode to 3 */
+	cycles_per_us = (clk_get_rate(keypad->clk) / 1000000);
+	if (cycles_per_us == 0)
+		cycles_per_us = 1;
+
+	delay_cycles = cycles_per_us * keypad->pdata->scan_interval;
+	WARN_ON(delay_cycles >= (1<<16)); /* Overflow */
+	delay_cycles &= 0xffff;
+
+	row_delay_cycles = cycles_per_us * keypad->pdata->row_delay;
+	WARN_ON(row_delay_cycles >= (1<<14)); /* Overflow */
+	row_delay_cycles &= 0x3fff;
+
+
+	val |= (3<<0); /* Set scan mode to 3 (continuous scan) */
+	val |= (row_delay_cycles<<2); /* Delay between scanning each row */
+	val |= (delay_cycles<<16); /* Delay between scans */
 	writel(val, keypad->reg_base);
 
+	val = (KEYPAD_BITMASK_ROWS & 0xff) | (KEYPAD_BITMASK_COLS & 0xff)<<8;
+	writel(val, keypad->reg_base + 0x4);
+
 	/* Enable interrupts */
-	writel((1<<1), keypad->reg_base + 0xc);
+	keypad->int_mask = (1<<1);
+	writel(keypad->int_mask, keypad->reg_base + 0xc);
 
 	/* Disable GPIO interrupts to prevent hanging on touchpad */
 	/* Possibly used to detect touchpad events */
@@ -99,6 +117,7 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 	struct nspire_keypad *keypad;
 	struct input_dev *input;
 	struct resource *res;
+	struct clk *clk;
 	int i, j;
 	int irq;
 	int error;
@@ -120,6 +139,12 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
+	clk = clk_get(&pdev->dev, NULL);
+	if (IS_ERR(clk)) {
+		dev_err(&pdev->dev, "unable to get clock\n");
+		return -EINVAL;
+	}
+
 	keypad = kzalloc(sizeof(struct nspire_keypad), GFP_KERNEL);
 	input = input_allocate_device();
 	if (!keypad || !input) {
@@ -129,6 +154,7 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 	}
 
 	keypad->irq = irq;
+	keypad->clk = clk;
 	keypad->pdata = plat;
 	keypad->input = input;
 	spin_lock_init(&keypad->lock);
@@ -192,6 +218,8 @@ err_free_mem_region:
 err_free_mem:
 	input_free_device(input);
 	kfree(keypad);
+
+	clk_put(clk);
 	return error;
 }
 
@@ -207,6 +235,8 @@ static int nspire_keypad_remove(struct platform_device *pdev)
 	iounmap(keypad->reg_base);
 	release_mem_region(res->start, resource_size(res));
 	kfree(keypad);
+
+	clk_put(keypad->clk);
 
 	return 0;
 }
