@@ -269,6 +269,22 @@ static struct platform_device bl_device = {
 	}
 };
 
+/* NAND */
+static struct resource nand_resources[] = {
+	{
+		.start	= 0x81000000,
+		.end	= 0x81ffffff,
+		.flags	= IORESOURCE_MEM,
+	}
+};
+
+static struct platform_device nand_device = {
+	.name		= "nspire_nand",
+	.id		= 0,
+	.resource	= nand_resources,
+	.num_resources	= ARRAY_SIZE(nand_resources),
+};
+
 /* Init */
 
 extern bool cx_use_otg;
@@ -289,6 +305,7 @@ static void __init cx_init(void)
 
 	nspire_keypad_data.evtcodes = nspire_touchpad_evtcode_map;
 	platform_device_register(&nspire_keypad_device);
+	platform_device_register(&nand_device);
 	platform_device_register(&i2c_device);
 	platform_device_register(&bl_device);
 	nspire_touchpad_init();
