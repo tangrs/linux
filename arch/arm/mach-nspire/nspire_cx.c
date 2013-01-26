@@ -279,7 +279,7 @@ static struct resource nand_resources[] = {
 };
 
 static struct platform_device nand_device = {
-	.name		= "nspire_nand",
+	.name		= "nspire_cx_nand",
 	.id		= 0,
 	.resource	= nand_resources,
 	.num_resources	= ARRAY_SIZE(nand_resources),

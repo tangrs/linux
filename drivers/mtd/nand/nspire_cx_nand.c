@@ -1,11 +1,14 @@
 /*
- *  linux/drivers/mtd/nand/nspire_nand.c
+ *  linux/drivers/mtd/nand/nspire_cx_nand.c
  *
  *  Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2, as
  * published by the Free Software Foundation.
+ *
+ * This driver can be used to work with NANDs that are controlled by
+ * a PL351.
  *
  */
 
@@ -45,40 +48,18 @@ struct nspire_nand {
 		unsigned long	addr;
 		unsigned char	cmd;
 		unsigned char	addr_cycles:3;
-		unsigned char	cle:1;
-		unsigned char	ale:1;
 	}			state;
 
 	unsigned char		chip_addr;
 };
 
-static u8 nspire_read_byte(struct mtd_info * mtd)
-{
-	struct nand_chip *chip = mtd->priv;
-	struct nspire_nand *pdata = chip->priv;
-	union nspire_nand_addr n;
-	void __iomem * io;
-	uint8_t data;
-
-	n.addr = 0;
-	n.data.is_data = 1;
-	n.data.clear_cs = 1;
-	n.data.chip_addr = pdata->chip_addr;
-
-	io = ioremap(n.addr, sizeof(u8));
-	data = readb(io);
-	iounmap(io);
-
-	return data;
-}
-
-static int nspire_write(struct mtd_info * mtd, u8 cmd,
+static int nspire_write(struct mtd_info *mtd, u8 cmd,
 		unsigned long data, unsigned long addr_cycles)
 {
 	struct nand_chip *chip = mtd->priv;
 	struct nspire_nand *pdata = chip->priv;
 	union nspire_nand_addr n;
-	void __iomem * io;
+	void __iomem *io;
 
 	n.addr = 0;
 	n.cmd.addr_cycles = addr_cycles;
@@ -146,8 +127,6 @@ static int nspire_nand_probe(struct platform_device *pdev)
 	pdata->mtd.owner = THIS_MODULE;
 	pdata->mtd.name = dev_name(&pdev->dev);
 
-	//pdata->chip.read_byte = nspire_read_byte;
-	//pdata->chip.write_buf = nspire_write_buf;
 	pdata->chip.cmd_ctrl = nspire_cmd_ctrl;
 
 	nand_addr.addr = 0;
@@ -195,7 +174,7 @@ static struct platform_driver nspire_nand_driver = {
 	.probe	= nspire_nand_probe,
 	.remove	= nspire_nand_remove,
 	.driver	= {
-		.name		= "nspire_nand",
+		.name		= "nspire_cx_nand",
 		.owner		= THIS_MODULE,
 	},
 };
