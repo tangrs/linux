@@ -21,6 +21,8 @@
 #include <linux/input.h>
 #include <linux/usb/ehci_pdriver.h>
 #include <linux/mtd/nand.h>
+#include <linux/mtd/partitions.h>
+#include <linux/mtd/nspire_cx_nand.h>
 #include <linux/platform_data/i2c-designware.h>
 
 #include <mach/nspire_mmio.h>
@@ -270,6 +272,53 @@ static struct platform_device bl_device = {
 };
 
 /* NAND */
+
+/* Values taken from nandMgr. All marked read-only for your own protection. */
+
+struct mtd_partition nand_parts[] = {
+	{
+		.name		= "manuf",
+		.offset		= 0x00000000,
+		.size		= 0x00020000,
+		.mask_flags	= MTD_WRITEABLE, /* Read only */
+	},
+	{
+		.name		= "boot2",
+		.offset		= 0x00020000,
+		.size		= 0x002A0000,
+		.mask_flags	= MTD_WRITEABLE, /* Read only */
+	},
+	{
+		.name		= "boot2_data",
+		.offset		= 0x002C0000,
+		.size		= 0x00060000,
+		.mask_flags	= MTD_WRITEABLE, /* Read only */
+	},
+	{
+		.name		= "diags",
+		.offset		= 0x00320000,
+		.size		= 0x000B0000,
+		.mask_flags	= MTD_WRITEABLE, /* Read only */
+	},
+	{
+		.name		= "diags_data",
+		.offset		= 0x003D0000,
+		.size		= 0x00030000,
+		.mask_flags	= MTD_WRITEABLE, /* Read only */
+	},
+	{
+		.name		= "filesystem?",
+		.offset		= 0x00400000,
+		.size		= MTDPART_SIZ_FULL,
+		.mask_flags	= MTD_WRITEABLE, /* Read only */
+	},
+};
+
+struct nspire_cx_nand_platdata nand_platdata = {
+	.partitions	= nand_parts,
+	.nr_partitions	= ARRAY_SIZE(nand_parts),
+};
+
 static struct resource nand_resources[] = {
 	{
 		.start	= 0x81000000,
@@ -283,6 +332,9 @@ static struct platform_device nand_device = {
 	.id		= 0,
 	.resource	= nand_resources,
 	.num_resources	= ARRAY_SIZE(nand_resources),
+	.dev = {
+		.platform_data = &nand_platdata,
+	}
 };
 
 /* Init */

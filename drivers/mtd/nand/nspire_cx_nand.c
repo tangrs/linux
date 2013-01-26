@@ -17,6 +17,7 @@
 #include <linux/platform_device.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/nand.h>
+#include <linux/mtd/nspire_cx_nand.h>
 
 union nspire_nand_addr {
 	unsigned long addr;
@@ -95,6 +96,7 @@ static void nspire_cmd_ctrl(struct mtd_info *mtd, int data, unsigned int ctrl)
 
 static int nspire_nand_probe(struct platform_device *pdev)
 {
+	struct nspire_cx_nand_platdata *plat;
 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	struct nspire_nand *pdata;
 	void __iomem *io;
@@ -108,6 +110,12 @@ static int nspire_nand_probe(struct platform_device *pdev)
 
 	if (resource_size(res) != 0x01000000) {
 		dev_err(&pdev->dev, "Invalid chip size");
+		return -EINVAL;
+	}
+
+	plat = pdev->dev.platform_data;
+	if (!plat) {
+		dev_err(&pdev->dev, "Missing platform data");
 		return -EINVAL;
 	}
 
@@ -149,8 +157,8 @@ static int nspire_nand_probe(struct platform_device *pdev)
 		return -ENXIO;
 	}
 
-	err = mtd_device_parse_register(&pdata->mtd, 0, NULL,
-			NULL, 0);
+	err = mtd_device_parse_register(&pdata->mtd, NULL, NULL,
+			plat->partitions, plat->nr_partitions);
 	if (err) {
 		dev_err(&pdev->dev, "MTD register device failed");
 		nand_release(&pdata->mtd);
