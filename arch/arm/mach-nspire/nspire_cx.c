@@ -273,7 +273,10 @@ static struct platform_device bl_device = {
 
 /* NAND */
 
-/* Values taken from nandMgr. All marked read-only for your own protection. */
+/*
+ * Values taken from nandMgr and nspire_emu.
+ * All marked read-only for your own protection.
+ */
 
 struct mtd_partition nand_parts[] = {
 	{
@@ -307,7 +310,7 @@ struct mtd_partition nand_parts[] = {
 		.mask_flags	= MTD_WRITEABLE, /* Read only */
 	},
 	{
-		.name		= "filesystem?",
+		.name		= "filesystem",
 		.offset		= 0x00400000,
 		.size		= MTDPART_SIZ_FULL,
 		.mask_flags	= MTD_WRITEABLE, /* Read only */
