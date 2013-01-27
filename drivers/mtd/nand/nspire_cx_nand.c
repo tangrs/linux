@@ -131,7 +131,6 @@ static int nspire_nand_probe(struct platform_device *pdev)
 
 	pdata->chip_addr = (res->start)>>24;
 	pdata->chip.priv = pdata;
-	pdata->chip.ecc.mode = NAND_ECC_SOFT;
 	pdata->mtd.priv = &pdata->chip;
 	pdata->mtd.owner = THIS_MODULE;
 	pdata->mtd.name = dev_name(&pdev->dev);
