@@ -316,6 +316,14 @@ void __init nspire_init_early(void)
 	/* Renable bus access to everything in case the OS disabled them */
 	writel(0, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x18));
 	writel(0, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x20));
+
+	/*
+	 * Ack some non-maskable clock speed change interrupts before cpufreq
+	 * driver is brought up to avoid a race condition between an interrupt
+	 * happening and driver init.
+	 */
+
+	writel(3, NSPIRE_APB_VIRTIO(NSPIRE_APB_POWER + 0x14));
 }
 
 /* Common init */
