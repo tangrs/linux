@@ -64,6 +64,7 @@ static int __init onkey_init(void)
 		return -ENOMEM;
 	}
 
+	onkey_dev->name = "nspire-onkey";
 	onkey_dev->evbit[0] = BIT_MASK(EV_KEY);
 	onkey_dev->keybit[BIT_WORD(KEY_POWER)] = BIT_MASK(KEY_POWER);
 
