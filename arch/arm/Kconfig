@@ -980,6 +980,16 @@ config ARCH_OMAP1
 	help
 	  Support for older TI OMAP1 (omap7xx, omap15xx or omap16xx)
 
+config ARCH_NSPIRE
+	bool "TI-NSPIRE based"
+	depends on MMU
+	select CPU_ARM926T
+	select COMMON_CLK
+	select SPARSE_IRQ
+	select ARM_AMBA
+	help
+	  This enables support for systems using the TI-NSPIRE CPU
+
 endchoice
 
 menu "Multiple platform selection"
@@ -1095,6 +1105,8 @@ source "arch/arm/mach-pxa/Kconfig"
 source "arch/arm/plat-pxa/Kconfig"
 
 source "arch/arm/mach-mmp/Kconfig"
+
+source "arch/arm/mach-nspire/Kconfig"
 
 source "arch/arm/mach-realview/Kconfig"
 
