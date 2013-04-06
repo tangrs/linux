@@ -66,11 +66,11 @@
 			interrupts = <11>;
 		};
 
-		tdes: tdes@C8010000 {
+		tdes: crypto@C8010000 {
 			reg = <0xC8010000 0x1000>;
 		};
 
-		sha256: sha256@CC000000 {
+		sha256: crypto@CC000000 {
 			reg = <0xCC000000 0x1000>;
 		};
 
@@ -93,7 +93,7 @@
 				interrupts = <17>;
 			};
 
-			uart: uart@90020000 {
+			uart: serial@90020000 {
 				reg = <0x90020000 0x1000>;
 				interrupts = <1>;
 
@@ -101,7 +101,7 @@
 				clock-names = "uart_clk";
 			};
 
-			timer0: timer0@900C0000 {
+			timer0: timer@900C0000 {
 				reg = <0x900C0000 0x1000>;
 				interrupts = <18>;
 
@@ -109,7 +109,7 @@
 				clock-names = "timer_clk";
 			};
 
-			timer1: timer1@900D0000 {
+			timer1: timer@900D0000 {
 				reg = <0x900D0000 0x1000>;
 				interrupts = <19>;
 

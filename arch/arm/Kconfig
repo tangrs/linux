@@ -980,19 +980,6 @@ config ARCH_OMAP1
 	help
 	  Support for older TI OMAP1 (omap7xx, omap15xx or omap16xx)
 
-config ARCH_NSPIRE
-	bool "TI-NSPIRE based"
-	depends on MMU
-	select CPU_ARM926T
-	select COMMON_CLK
-	select GENERIC_CLOCKEVENTS
-	select SPARSE_IRQ
-	select ARM_AMBA
-	select ARM_VIC
-	select ARM_TIMER_SP804
-	help
-	  This enables support for systems using the TI-NSPIRE CPU
-
 endchoice
 
 menu "Multiple platform selection"
@@ -1093,6 +1080,8 @@ source "arch/arm/mach-mxs/Kconfig"
 source "arch/arm/mach-netx/Kconfig"
 
 source "arch/arm/mach-nomadik/Kconfig"
+
+source "arch/arm/mach-nspire/Kconfig"
 
 source "arch/arm/plat-omap/Kconfig"
 
