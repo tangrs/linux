@@ -16,7 +16,6 @@
 #include <linux/irqchip/arm-vic.h>
 #include <linux/clk-provider.h>
 #include <linux/clkdev.h>
-#include <linux/clk/nspire.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach-types.h>
@@ -50,7 +49,7 @@ static void __init nspire_init_timer(void)
 	struct clk *clk;
 	int irq, err;
 
-	nspire_init_clocks();
+	of_clk_init(NULL);
 
 	err = of_property_read_string(of_aliases, "timer0", &path);
 	if (WARN_ON(err))
