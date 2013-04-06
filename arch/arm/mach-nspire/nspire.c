@@ -61,7 +61,7 @@ static void __init nspire_init_timer(void)
 	if (WARN_ON(!base))
 		return;
 
-	clk = of_clk_get_by_name(timer, "timclk");
+	clk = of_clk_get_by_name(timer, NULL);
 	clk_register_clkdev(clk, timer->name, "sp804");
 
 	sp804_clocksource_init(base, timer->name);
@@ -75,7 +75,7 @@ static void __init nspire_init_timer(void)
 	if (WARN_ON(!base))
 		return;
 
-	clk = of_clk_get_by_name(timer, "timclk");
+	clk = of_clk_get_by_name(timer, NULL);
 	clk_register_clkdev(clk, timer->name, "sp804");
 
 	irq = irq_of_parse_and_map(timer, 0);

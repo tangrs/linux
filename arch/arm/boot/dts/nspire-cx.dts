@@ -23,16 +23,22 @@
 
 	aliases {
 		uart0 = &uart0;
-		uart0 = &uart0;
 		timer0 = &timer0;
 		timer1 = &timer1;
 		fast_timer = &fast_timer;
 	};
 
-	uartclk: uartclk {
+	uart_clk: uart_clk {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
 		clock-frequency = <12000000>;
+	};
+
+	/* Not really a fixed clock but we'll fix this later */
+	apb_pclk: apb_pclk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <33000000>;
 	};
 
 	ahb {
@@ -52,52 +58,24 @@
 
 			i2c@90050000 {
 				compatible = "snps,designware-i2c";
-				#address-cells = <1>;
-				#size-cells = <0>;
 				reg = <0x90050000 0x1000>;
 				interrupts = <20>;
-
-				touchpad: input@20 {
-					reg = <0x20>;
-				};
 			};
 
 			fast_timer: timer@90010000 {
 				compatible = "arm,sp804", "arm,primecell";
-				reg = <0x90010000 0x1000>;
-				interrupts = <17>;
 			};
 
 			uart0: uart@90020000 {
 				compatible = "arm,pl011", "arm,primecell";
-				reg = <0x90020000 0x1000>;
-				interrupts = <1>;
-
-				clocks = <&uartclk>;
-				clock-names = "uartclk";
 			};
-
-			/*uart1: serial@90030000 {
-				compatible = "arm,pl011", "arm,primecell";
-				reg = <0x90030000 0x1000>;
-			};*/
 
 			timer0: timer0@900C0000 {
 				compatible = "arm,sp804", "arm,primecell";
-				reg = <0x900C0000 0x1000>;
-				interrupts = <18>;
-
-				clocks = <&timclk>;
-				clock-names = "timclk";
 			};
 
 			timer1: timer1@900D0000 {
 				compatible = "arm,sp804", "arm,primecell";
-				reg = <0x900D0000 0x1000>;
-				interrupts = <19>;
-
-				clocks = <&timclk>;
-				clock-names = "timclk";
 			};
 		};
 	};
