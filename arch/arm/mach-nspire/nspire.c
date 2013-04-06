@@ -15,6 +15,8 @@
 #include <linux/irqchip.h>
 #include <linux/irqchip/arm-vic.h>
 #include <linux/clk-provider.h>
+#include <linux/clkdev.h>
+#include <linux/clk/nspire.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach-types.h>
@@ -39,16 +41,16 @@ static struct map_desc nspire_io_desc[] __initdata = {
 		.type		= MT_DEVICE
 	}
 };
-static void __init nspire_init_early(void) {
-	of_clk_init(NULL);
-}
 
 static void __init nspire_init_timer(void)
 {
 	struct device_node *timer;
 	void __iomem *base;
 	const char *path;
+	struct clk *clk;
 	int irq, err;
+
+	nspire_init_clocks();
 
 	err = of_property_read_string(of_aliases, "timer0", &path);
 	if (WARN_ON(err))
@@ -58,6 +60,9 @@ static void __init nspire_init_timer(void)
 	base = of_iomap(timer, 0);
 	if (WARN_ON(!base))
 		return;
+
+	clk = of_clk_get_by_name(timer, "timclk");
+	clk_register_clkdev(clk, timer->name, "sp804");
 
 	sp804_clocksource_init(base, timer->name);
 
@@ -70,6 +75,9 @@ static void __init nspire_init_timer(void)
 	if (WARN_ON(!base))
 		return;
 
+	clk = of_clk_get_by_name(timer, "timclk");
+	clk_register_clkdev(clk, timer->name, "sp804");
+
 	irq = irq_of_parse_and_map(timer, 0);
 	sp804_clockevents_init(base, irq, timer->name);
 }
@@ -81,7 +89,8 @@ static void __init nspire_map_io(void)
 
 static void __init nspire_init(void)
 {
-	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+	of_platform_populate(NULL, of_default_bus_match_table,
+			NULL, NULL);
 }
 
 static void nspire_restart(char mode, const char *cmd)
@@ -90,7 +99,6 @@ static void nspire_restart(char mode, const char *cmd)
 
 DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
 	.map_io		= nspire_map_io,
-	.init_early	= nspire_init_early,
 	.init_irq	= irqchip_init,
 	.init_time	= nspire_init_timer,
 	.init_machine	= nspire_init,

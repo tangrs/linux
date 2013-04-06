@@ -1,5 +1,5 @@
 /*
- *	linux/drivers/clk/clk-nspire.c
+ *	linux/include/clk/nspire.h
  *
  *	Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
  *
@@ -8,13 +8,10 @@
  * published by the Free Software Foundation.
  *
  */
-#include <linux/clk-provider.h>
-#include <linux/clkdev.h>
 
-void __init nspire_init_clocks(void)
-{
-	struct clk *clk;
+#ifndef __LINUX_CLK_NSPIRE_H_
+#define __LINUX_CLK_NSPIRE_H_
 
-	of_clk_init(NULL);
+void __init nspire_init_clocks(void);
 
-}
+#endif

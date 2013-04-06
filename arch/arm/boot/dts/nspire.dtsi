@@ -27,17 +27,21 @@
 		reg = <0xA4000000 0x20000>;
 	};
 
-	clocks {
-		timclk {
-			compatible = "fixed-clock";
-			clock-frequency = <32768>;
-			clock-output-names =	"timer0",
-						"timer1";
-		};
+	timclk: timclk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <32768>;
+	};
+
+	apb_pclk: apb_pclk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <33000000>;
 	};
 
 	ahb {
-		compatible = "simple-bus";
+		compatible = "arm,amba-bus", "simple-bus";
+		interrupt-parent = <&intc>;
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges;
@@ -80,9 +84,12 @@
 		};
 
 		apb@90000000 {
-			compatible = "simple-bus";
+			compatible = "arm,amba-bus", "simple-bus";
 			#address-cells = <1>;
 			#size-cells = <1>;
+			clocks = <&apb_pclk>;
+			clock-names = "apb_pclk";
+			clock-ranges;
 			ranges;
 
 			gpio: gpio@90000000 {

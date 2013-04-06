@@ -29,11 +29,17 @@
 		fast_timer = &fast_timer;
 	};
 
+	uartclk: uartclk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+	};
+
 	ahb {
 		#address-cells = <1>;
 		#size-cells = <1>;
 
-		interrupt-controller@DC000000 {
+		intc: interrupt-controller@DC000000 {
 			compatible = "arm,pl190-vic";
 			interrupt-controller;
 			reg = <0xDC000000 0x1000>;
@@ -62,31 +68,40 @@
 				interrupts = <17>;
 			};
 
-			uart0: serial@90020000 {
+			uart0: uart@90020000 {
 				compatible = "arm,pl011", "arm,primecell";
 				reg = <0x90020000 0x1000>;
 				interrupts = <1>;
+
+				clocks = <&uartclk>;
+				clock-names = "uartclk";
 			};
 
-			uart1: serial@90030000 {
+			/*uart1: serial@90030000 {
 				compatible = "arm,pl011", "arm,primecell";
 				reg = <0x90030000 0x1000>;
-			};
+			};*/
 
-			timer0: timer@900C0000 {
+			timer0: timer0@900C0000 {
 				compatible = "arm,sp804", "arm,primecell";
 				reg = <0x900C0000 0x1000>;
 				interrupts = <18>;
+
+				clocks = <&timclk>;
+				clock-names = "timclk";
 			};
 
-			timer1: timer@900D0000 {
+			timer1: timer1@900D0000 {
 				compatible = "arm,sp804", "arm,primecell";
 				reg = <0x900D0000 0x1000>;
 				interrupts = <19>;
+
+				clocks = <&timclk>;
+				clock-names = "timclk";
 			};
 		};
 	};
 	chosen {
-		bootargs = "debug earlyprintk keep_bootcon console=ttyAMA0";
+		bootargs = "debug earlyprintk console=ttyAMA0,115200n8";
 	};
 };
