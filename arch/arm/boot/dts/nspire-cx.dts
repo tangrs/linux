@@ -66,15 +66,15 @@
 				compatible = "arm,sp804", "arm,primecell";
 			};
 
-			uart0: uart@90020000 {
+			uart0: serial@90020000 {
 				compatible = "arm,pl011", "arm,primecell";
 			};
 
-			timer0: timer0@900C0000 {
+			timer0: timer@900C0000 {
 				compatible = "arm,sp804", "arm,primecell";
 			};
 
-			timer1: timer1@900D0000 {
+			timer1: timer@900D0000 {
 				compatible = "arm,sp804", "arm,primecell";
 			};
 		};
