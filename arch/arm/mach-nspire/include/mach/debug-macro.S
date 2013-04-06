@@ -9,20 +9,17 @@
  *
  */
 
-#define NSPIRE_EARLY_UART_PHYS_BASE	   0x90020000
-#define NSPIRE_EARLY_UART_VIRT_BASE	   0xfee20000
+#include "../../mmio.h"
 
 .macro	addruart, rp, rv, tmp
 	ldr \rp, =(NSPIRE_EARLY_UART_PHYS_BASE)		@ physical base address
 	ldr \rv, =(NSPIRE_EARLY_UART_VIRT_BASE)		@ virtual base address
 .endm
 
-
-//#ifdef CONFIG_NSPIRE_EARLYPRINTK_CX
 #include <asm/hardware/debug-pl01x.S>
-//#endif
 
-#ifdef CONFIG_NSPIRE_EARLYPRINTK_CLASSIC
+
+/*
 #define UART_SHIFT 2
 #include <asm/hardware/debug-8250.S>
-#endif
+*/

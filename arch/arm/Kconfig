@@ -985,8 +985,11 @@ config ARCH_NSPIRE
 	depends on MMU
 	select CPU_ARM926T
 	select COMMON_CLK
+	select GENERIC_CLOCKEVENTS
 	select SPARSE_IRQ
 	select ARM_AMBA
+	select ARM_VIC
+	select ARM_TIMER_SP804
 	help
 	  This enables support for systems using the TI-NSPIRE CPU
 
@@ -1105,8 +1108,6 @@ source "arch/arm/mach-pxa/Kconfig"
 source "arch/arm/plat-pxa/Kconfig"
 
 source "arch/arm/mach-mmp/Kconfig"
-
-source "arch/arm/mach-nspire/Kconfig"
 
 source "arch/arm/mach-realview/Kconfig"
 

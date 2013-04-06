@@ -8,3 +8,6 @@
  * published by the Free Software Foundation.
  *
  */
+
+#define NSPIRE_EARLY_UART_PHYS_BASE	   0x90020000
+#define NSPIRE_EARLY_UART_VIRT_BASE	   0xfee20000

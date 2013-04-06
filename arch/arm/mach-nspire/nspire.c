@@ -23,6 +23,7 @@
 
 #include <asm/hardware/timer-sp.h>
 
+#include "mmio.h"
 
 static const char *nspire_dt_match[] __initconst = {
 	"arm,nspire",
@@ -34,8 +35,8 @@ static const char *nspire_dt_match[] __initconst = {
 
 static struct map_desc nspire_io_desc[] __initdata = {
 	{
-		.virtual	=  0xfee20000,
-		.pfn		= __phys_to_pfn(0x90020000),
+		.virtual	=  NSPIRE_EARLY_UART_VIRT_BASE,
+		.pfn		= __phys_to_pfn(NSPIRE_EARLY_UART_PHYS_BASE),
 		.length		= SZ_4K,
 		.type		= MT_DEVICE
 	}
