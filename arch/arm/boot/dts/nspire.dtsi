@@ -27,6 +27,15 @@
 		reg = <0xA4000000 0x20000>;
 	};
 
+	clocks {
+		timclk {
+			compatible = "fixed-clock";
+			clock-frequency = <32768>;
+			clock-output-names =	"timer0",
+						"timer1";
+		};
+	};
+
 	ahb {
 		compatible = "simple-bus";
 		#address-cells = <1>;

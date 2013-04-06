@@ -32,7 +32,6 @@
 	ahb {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		ranges;
 
 		interrupt-controller@DC000000 {
 			compatible = "arm,pl190-vic";
@@ -41,10 +40,9 @@
 			#interrupt-cells = <1>;
 		};
 
-		apb {
+		apb@90000000 {
 			#address-cells = <1>;
 			#size-cells = <1>;
-			ranges;
 
 			i2c@90050000 {
 				compatible = "snps,designware-i2c";

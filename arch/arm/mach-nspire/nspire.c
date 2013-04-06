@@ -14,6 +14,7 @@
 #include <linux/of_platform.h>
 #include <linux/irqchip.h>
 #include <linux/irqchip/arm-vic.h>
+#include <linux/clk-provider.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach-types.h>
@@ -38,6 +39,9 @@ static struct map_desc nspire_io_desc[] __initdata = {
 		.type		= MT_DEVICE
 	}
 };
+static void __init nspire_init_early(void) {
+	of_clk_init(NULL);
+}
 
 static void __init nspire_init_timer(void)
 {
@@ -86,7 +90,7 @@ static void nspire_restart(char mode, const char *cmd)
 
 DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
 	.map_io		= nspire_map_io,
-//	.init_early	= nspire_init_early,
+	.init_early	= nspire_init_early,
 	.init_irq	= irqchip_init,
 	.init_time	= nspire_init_timer,
 	.init_machine	= nspire_init,
