@@ -14,7 +14,7 @@
 / {
 	cpus {
 		cpu@0 {
-			compatible = "arm,arm926ej-s";
+			compatible = "arm,arm926";
 		};
 	};
 
