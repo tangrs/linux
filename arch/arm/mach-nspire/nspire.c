@@ -9,6 +9,8 @@
  *
  */
 #include <linux/init.h>
+#include <linux/of_irq.h>
+#include <linux/of_address.h>
 #include <linux/of_platform.h>
 #include <linux/irqchip.h>
 #include <linux/irqchip/arm-vic.h>
@@ -16,6 +18,9 @@
 #include <asm/mach/arch.h>
 #include <asm/mach-types.h>
 #include <asm/mach/map.h>
+
+#include <asm/hardware/timer-sp.h>
+
 
 static const char *nspire_dt_match[] __initconst = {
 	"arm,nspire",
@@ -34,8 +39,35 @@ static struct map_desc nspire_io_desc[] __initdata = {
 	}
 };
 
-static void __init nspire_init_time(void)
+static void __init nspire_init_timer(void)
 {
+	struct device_node *timer;
+	void __iomem *base;
+	const char *path;
+	int irq, err;
+
+	err = of_property_read_string(of_aliases, "timer0", &path);
+	if (WARN_ON(err))
+		return;
+
+	timer = of_find_node_by_path(path);
+	base = of_iomap(timer, 0);
+	if (WARN_ON(!base))
+		return;
+
+	sp804_clocksource_init(base, timer->name);
+
+	err = of_property_read_string(of_aliases, "timer1", &path);
+	if (WARN_ON(err))
+		return;
+
+	timer = of_find_node_by_path(path);
+	base = of_iomap(timer, 0);
+	if (WARN_ON(!base))
+		return;
+
+	irq = irq_of_parse_and_map(timer, 0);
+	sp804_clockevents_init(base, irq, timer->name);
 }
 
 static void __init nspire_map_io(void)
@@ -56,7 +88,7 @@ DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
 	.map_io		= nspire_map_io,
 //	.init_early	= nspire_init_early,
 	.init_irq	= irqchip_init,
-	.init_time	= nspire_init_time,
+	.init_time	= nspire_init_timer,
 	.init_machine	= nspire_init,
 	.dt_compat	= nspire_dt_match,
 	.restart	= nspire_restart,

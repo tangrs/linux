@@ -21,11 +21,20 @@
 		reg = <0x10000000 0x4000000>; /* 64 MB */
 	};
 
+	aliases {
+		uart0 = &uart0;
+		uart0 = &uart0;
+		timer0 = &timer0;
+		timer1 = &timer1;
+		fast_timer = &fast_timer;
+	};
+
 	ahb {
 		#address-cells = <1>;
 		#size-cells = <1>;
+		ranges;
 
-		vic: interrupt-controller@DC000000 {
+		interrupt-controller@DC000000 {
 			compatible = "arm,pl190-vic";
 			interrupt-controller;
 			reg = <0xDC000000 0x1000>;
@@ -35,8 +44,9 @@
 		apb {
 			#address-cells = <1>;
 			#size-cells = <1>;
+			ranges;
 
-			i2c: i2c@90050000 {
+			i2c@90050000 {
 				compatible = "snps,designware-i2c";
 				#address-cells = <1>;
 				#size-cells = <0>;
