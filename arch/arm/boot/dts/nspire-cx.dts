@@ -81,9 +81,13 @@
 			timer1: timer@900D0000 {
 				compatible = "arm,sp804", "arm,primecell";
 			};
+
+			keypad: input@900E0000 {
+				keymap = <0x00060021>;
+			};
 		};
 	};
 	chosen {
-		bootargs = "debug earlyprintk console=ttyAMA0,115200n8 console=tty0";
+		bootargs = "debug earlyprintk console=ttyAMA0,115200n8 console=tty0 root=/dev/ram0 rootdelay=120";
 	};
 };

@@ -141,8 +141,15 @@
 			};
 
 			keypad: input@900E0000 {
+				compatible = "nspire-keypad";
 				reg = <0x900E0000 0x1000>;
 				interrupts = <16>;
+
+				scan-interval = <1000>;
+				row-delay = <200>;
+
+				clocks = <&apb_pclk>;
+				clock-names = "apb_pclk";
 			};
 
 			contrast: contrast@900F0000 {
