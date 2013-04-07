@@ -52,6 +52,10 @@
 			#interrupt-cells = <1>;
 		};
 
+		lcd: lcd@C0000000 {
+			lcd-type = "cx";
+		};
+
 		apb@90000000 {
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -80,6 +84,6 @@
 		};
 	};
 	chosen {
-		bootargs = "debug earlyprintk console=ttyAMA0,115200n8";
+		bootargs = "debug earlyprintk console=ttyAMA0,115200n8 console=tty0";
 	};
 };

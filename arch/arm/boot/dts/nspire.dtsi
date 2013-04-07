@@ -56,9 +56,12 @@
 		};
 
 		lcd: lcd@C0000000 {
-			compatible = "arm,amba-primecell";
+			compatible = "arm,pl111", "arm,primecell";
 			reg = <0xC0000000 0x1000>;
 			interrupts = <21>;
+
+			clocks = <&apb_pclk>;
+			clock-names = "apb_pclk";
 		};
 
 		adc: adc@C4000000 {
