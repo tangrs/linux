@@ -155,6 +155,12 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
+	clk_prepare(clk);
+	error = clk_enable(clk);
+	if (error) {
+		goto err_put_clk;
+	}
+
 	keypad = kzalloc(sizeof(struct nspire_keypad), GFP_KERNEL);
 	input = input_allocate_device();
 	if (!keypad || !input) {
@@ -262,6 +268,9 @@ err_free_mem:
 	input_free_device(input);
 	kfree(keypad);
 
+	clk_disable(clk);
+err_put_clk:
+	clk_unprepare(clk);
 	clk_put(clk);
 	return error;
 }
@@ -279,6 +288,8 @@ static int nspire_keypad_remove(struct platform_device *pdev)
 	release_mem_region(res->start, resource_size(res));
 	kfree(keypad);
 
+	clk_disable(keypad->clk);
+	clk_unprepare(keypad->clk);
 	clk_put(keypad->clk);
 
 	return 0;
