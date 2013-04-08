@@ -67,8 +67,8 @@
 			reg = <0xC0000000 0x1000>;
 			interrupts = <21>;
 
-			clocks = <&lcd_clk>, <&apb_pclk>;
-			clock-names = "lcd_clk", "apb_pclk";
+			clocks = <&lcd_clk>;
+			clock-names = "apb_pclk";
 		};
 
 		adc: adc@C4000000 {
