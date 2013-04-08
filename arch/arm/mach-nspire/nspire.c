@@ -45,44 +45,57 @@ static struct map_desc nspire_io_desc[] __initdata = {
 	}
 };
 
+#define TIMER_NAME_MAXLEN 32
+static void __init nspire_add_sp804_timers(void)
+{
+	struct device_node *of_timer;
+	int clockevents_found = 0;
+
+	for_each_compatible_node(of_timer, NULL, "arm,sp804") {
+		struct resource res;
+		void __iomem *base;
+		char *timer_name;
+		struct clk *clk;
+		int irq;
+
+		clk = of_clk_get_by_name(of_timer, NULL);
+		if (WARN_ON(!clk))
+			continue;
+
+		timer_name = kzalloc(TIMER_NAME_MAXLEN, GFP_ATOMIC);
+		if (!timer_name)
+			break;
+
+		base = of_iomap(of_timer, 0);
+		if (WARN_ON(!base)) {
+			kfree(timer_name);
+			continue;
+		}
+
+		of_address_to_resource(of_timer, 0, &res);
+		scnprintf(timer_name, TIMER_NAME_MAXLEN, "%llx.%s",
+				(unsigned long long)res.start,
+				of_timer->name);
+
+		clk_register_clkdev(clk, timer_name, "sp804");
+		if (!clockevents_found) {
+			irq = irq_of_parse_and_map(of_timer, 0);
+			if (irq) {
+				sp804_clockevents_init(base, irq,timer_name);
+				clockevents_found = 1;
+				continue;
+			}
+		}
+
+		sp804_clocksource_init(base, timer_name);
+	}
+}
+
+
 static void __init nspire_init_timer(void)
 {
-	struct device_node *timer;
-	void __iomem *base;
-	const char *path;
-	struct clk *clk;
-	int irq, err;
-
 	of_clk_init(NULL);
-
-	err = of_property_read_string(of_aliases, "timer0", &path);
-	if (WARN_ON(err))
-		return;
-
-	timer = of_find_node_by_path(path);
-	base = of_iomap(timer, 0);
-	if (WARN_ON(!base))
-		return;
-
-	clk = of_clk_get_by_name(timer, NULL);
-	clk_register_clkdev(clk, timer->name, "sp804");
-
-	sp804_clocksource_init(base, timer->name);
-
-	err = of_property_read_string(of_aliases, "timer1", &path);
-	if (WARN_ON(err))
-		return;
-
-	timer = of_find_node_by_path(path);
-	base = of_iomap(timer, 0);
-	if (WARN_ON(!base))
-		return;
-
-	clk = of_clk_get_by_name(timer, NULL);
-	clk_register_clkdev(clk, timer->name, "sp804");
-
-	irq = irq_of_parse_and_map(timer, 0);
-	sp804_clockevents_init(base, irq, timer->name);
+	nspire_add_sp804_timers();
 }
 
 static void __init nspire_map_io(void)
