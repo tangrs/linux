@@ -12,6 +12,8 @@
 /include/ "skeleton.dtsi"
 
 / {
+	interrupt-parent = <&intc>;
+
 	cpus {
 		cpu@0 {
 			compatible = "arm,arm926ejs";
@@ -33,9 +35,14 @@
 		clock-frequency = <32768>;
 	};
 
+	lcd_clk: lcd_clk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <660000000>;
+	};
+
 	ahb {
-		compatible = "arm,amba-bus", "simple-bus";
-		interrupt-parent = <&intc>;
+		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges;
@@ -60,8 +67,8 @@
 			reg = <0xC0000000 0x1000>;
 			interrupts = <21>;
 
-			clocks = <&apb_pclk>;
-			clock-names = "apb_pclk";
+			clocks = <&lcd_clk>, <&apb_pclk>;
+			clock-names = "lcd_clk", "apb_pclk";
 		};
 
 		adc: adc@C4000000 {
@@ -78,11 +85,9 @@
 		};
 
 		apb@90000000 {
-			compatible = "arm,amba-bus", "simple-bus";
+			compatible = "simple-bus";
 			#address-cells = <1>;
 			#size-cells = <1>;
-			clocks = <&apb_pclk>;
-			clock-names = "apb_pclk";
 			clock-ranges;
 			ranges;
 
@@ -100,13 +105,12 @@
 				reg = <0x90020000 0x1000>;
 				interrupts = <1>;
 
-				clocks = <&uart_clk>;
-				clock-names = "uart_clk";
+				clocks = <&uart_clk>, <&apb_pclk>;
+				clock-names = "uart_clk", "apb_pclk";
 			};
 
 			timer0: timer@900C0000 {
 				reg = <0x900C0000 0x1000>;
-				interrupts = <18>;
 
 				clocks = <&timer_clk>;
 				clock-names = "timer_clk";

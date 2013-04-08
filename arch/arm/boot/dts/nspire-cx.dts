@@ -21,13 +21,6 @@
 		reg = <0x10000000 0x4000000>; /* 64 MB */
 	};
 
-	aliases {
-		uart0 = &uart0;
-		timer0 = &timer0;
-		timer1 = &timer1;
-		fast_timer = &fast_timer;
-	};
-
 	uart_clk: uart_clk {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
@@ -66,9 +59,11 @@
 				interrupts = <20>;
 			};
 
+			/*
 			fast_timer: timer@90010000 {
 				compatible = "arm,sp804", "arm,primecell";
 			};
+			*/
 
 			uart0: serial@90020000 {
 				compatible = "arm,pl011", "arm,primecell";
@@ -110,6 +105,6 @@
 		};
 	};
 	chosen {
-		bootargs = "debug earlyprintk console=ttyAMA0,115200n8 console=tty0 root=/dev/ram0 rootdelay=120";
+		bootargs = "debug earlyprintk console=tty0 console=ttyAMA0,115200n8 root=/dev/ram0";
 	};
 };
