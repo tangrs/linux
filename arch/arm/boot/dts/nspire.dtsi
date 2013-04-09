@@ -35,12 +35,6 @@
 		clock-frequency = <32768>;
 	};
 
-	lcd_clk: lcd_clk {
-		#clock-cells = <0>;
-		compatible = "fixed-clock";
-		clock-frequency = <660000000>;
-	};
-
 	ahb {
 		compatible = "simple-bus";
 		#address-cells = <1>;
@@ -67,7 +61,7 @@
 			reg = <0xC0000000 0x1000>;
 			interrupts = <21>;
 
-			clocks = <&lcd_clk>;
+			clocks = <&apb_pclk>;
 			clock-names = "apb_pclk";
 		};
 
