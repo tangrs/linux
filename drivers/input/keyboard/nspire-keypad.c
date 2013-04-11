@@ -77,9 +77,8 @@ static irqreturn_t nspire_keypad_irq(int irq, void *dev_id)
 
 	for (row = 0; row < KEYPAD_BITMASK_ROWS; row++) {
 		u16 bits = state[row];
-		for (col = 0; col < KEYPAD_BITMASK_COLS; col++) {
+		for (col = 0; col < KEYPAD_BITMASK_COLS; col++)
 			nspire_report_state(keypad, row, col, bits & (1<<col));
-		}
 	}
 	input_sync(keypad->input);
 	writel(0x3, keypad->reg_base + KEYPAD_INT);
@@ -157,9 +156,8 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 
 	clk_prepare(clk);
 	error = clk_enable(clk);
-	if (error) {
+	if (error)
 		goto err_put_clk;
-	}
 
 	keypad = kzalloc(sizeof(struct nspire_keypad), GFP_KERNEL);
 	input = input_allocate_device();

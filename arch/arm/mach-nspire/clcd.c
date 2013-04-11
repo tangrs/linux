@@ -77,16 +77,11 @@ int nspire_clcd_setup(struct clcd_fb *fb)
 		return err;
 	}
 
-	if (!strcmp(type, "cx"))
-	{
+	if (!strcmp(type, "cx")) {
 		panel = &nspire_cx_lcd_panel;
-	}
-	else if (!strcmp(type, "classic"))
-	{
+	} else if (!strcmp(type, "classic")) {
 		panel = &nspire_classic_lcd_panel;
-	}
-	else
-	{
+	} else {
 		pr_err("CLCD: Unknown lcd-type %s\n", type);
 		return -EINVAL;
 	}

@@ -56,7 +56,7 @@ static void __init nspire_add_sp804_timers(void)
 	for_each_compatible_node(of_timer, NULL, "arm,sp804") {
 		struct resource res;
 		void __iomem *base;
-		char *timer_name;
+		char *name;
 		struct clk *clk;
 		int irq;
 
@@ -64,32 +64,32 @@ static void __init nspire_add_sp804_timers(void)
 		if (WARN_ON(!clk))
 			continue;
 
-		timer_name = kzalloc(TIMER_NAME_MAXLEN, GFP_ATOMIC);
-		if (!timer_name)
+		name = kzalloc(TIMER_NAME_MAXLEN, GFP_ATOMIC);
+		if (!name)
 			break;
 
 		base = of_iomap(of_timer, 0);
 		if (WARN_ON(!base)) {
-			kfree(timer_name);
+			kfree(name);
 			continue;
 		}
 
 		of_address_to_resource(of_timer, 0, &res);
-		scnprintf(timer_name, TIMER_NAME_MAXLEN, "%llx.%s",
+		scnprintf(name, TIMER_NAME_MAXLEN, "%llx.%s",
 				(unsigned long long)res.start,
 				of_timer->name);
 
-		clk_register_clkdev(clk, timer_name, "sp804");
+		clk_register_clkdev(clk, name, "sp804");
 		if (!clockevents_found) {
 			irq = irq_of_parse_and_map(of_timer, 0);
 			if (irq) {
-				sp804_clockevents_init(base, irq,timer_name);
+				sp804_clockevents_init(base, irq, name);
 				clockevents_found = 1;
 				continue;
 			}
 		}
 
-		sp804_clocksource_init(base, timer_name);
+		sp804_clocksource_init(base, name);
 	}
 }
 
