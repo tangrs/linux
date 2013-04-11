@@ -10,5 +10,6 @@ config ARCH_NSPIRE
 	select ARM_VIC
 	select ARM_TIMER_SP804
 	select USE_OF
+	select CLKSRC_OF
 	help
 	  This enables support for systems using the TI-NSPIRE CPU

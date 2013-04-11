@@ -19,6 +19,8 @@
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
 
+#include <clocksource/nspire_classic_timer.h>
+
 #include <asm/mach/arch.h>
 #include <asm/mach-types.h>
 #include <asm/mach/map.h>
@@ -95,6 +97,7 @@ static void __init nspire_add_sp804_timers(void)
 static void __init nspire_init_timer(void)
 {
 	of_clk_init(NULL);
+	nspire_classic_timer_init();
 	nspire_add_sp804_timers();
 }
 
