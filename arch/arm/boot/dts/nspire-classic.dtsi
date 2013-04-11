@@ -1,0 +1,63 @@
+/*
+ *  linux/arch/arm/boot/nspire-classic.dts
+ *
+ *  Copyright (C) 2012 Daniel Tang <tangrs@tangrs.id.au>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2, as
+ * published by the Free Software Foundation.
+ *
+ */
+
+/include/ "nspire.dtsi"
+
+&lcd {
+	lcd-type = "classic";
+};
+
+&fast_timer {
+	/* compatible = "nspire-classic-timer"; */
+	reg = <0x90010000 0x1000>, <0x900A0010 0x8>;
+};
+
+&uart {
+};
+
+&timer0 {
+	compatible = "nspire-classic-timer";
+	reg = <0x900C0000 0x1000>, <0x900A0018 0x8>;
+};
+
+&timer1 {
+	compatible = "nspire-classic-timer";
+	reg = <0x900D0000 0x1000>, <0x900A0020 0x8>;
+};
+
+/ {
+	memory {
+		device_type = "memory";
+		reg = <0x10000000 0x2000000>; /* 32 MB */
+	};
+
+	/* Not really a fixed clock but we'll fix this later */
+	apb_pclk: apb_pclk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <30000000>;
+	};
+
+	ahb {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		intc: interrupt-controller@DC000000 {
+			compatible = "nspire-classic-intc";
+			interrupt-controller;
+			reg = <0xDC000000 0x1000>;
+			#interrupt-cells = <1>;
+		};
+	};
+	chosen {
+		bootargs = "debug earlyprintk console=tty0 console=ttyS0,115200n8 root=/dev/ram0";
+	};
+};

@@ -22,6 +22,9 @@
 
 &uart {
 	compatible = "arm,pl011", "arm,primecell";
+
+	clocks = <&uart_clk>, <&apb_pclk>;
+	clock-names = "uart_clk", "apb_pclk";
 };
 
 &timer0 {

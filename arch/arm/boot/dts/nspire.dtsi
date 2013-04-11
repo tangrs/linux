@@ -98,9 +98,6 @@
 			uart: serial@90020000 {
 				reg = <0x90020000 0x1000>;
 				interrupts = <1>;
-
-				clocks = <&uart_clk>, <&apb_pclk>;
-				clock-names = "uart_clk", "apb_pclk";
 			};
 
 			timer0: timer@900C0000 {
