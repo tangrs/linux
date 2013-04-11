@@ -21,6 +21,11 @@
 };
 
 &uart {
+	compatible = "ns16550";
+	reg-shift = <2>;
+	reg-io-width = <4>;
+	clock-frequency = <29491200>;
+	no-loopback-test;
 };
 
 &timer0 {
