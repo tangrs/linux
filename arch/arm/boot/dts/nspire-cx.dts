@@ -94,10 +94,6 @@
 			#interrupt-cells = <1>;
 		};
 
-		lcd: lcd@C0000000 {
-			lcd-type = "cx";
-		};
-
 		apb@90000000 {
 			#address-cells = <1>;
 			#size-cells = <1>;
