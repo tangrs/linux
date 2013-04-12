@@ -130,6 +130,11 @@ static void __init nspire_init(void)
 
 static void nspire_restart(char mode, const char *cmd)
 {
+	void __iomem *base = ioremap(NSPIRE_MISC_PHYS_BASE);
+	if (!base)
+		return;
+
+	writel(2, base + NSPIRE_MISC_HWRESET);
 }
 
 DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
