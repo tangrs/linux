@@ -108,6 +108,7 @@ static void __init nspire_map_io(void)
 
 static struct clcd_board nspire_clcd_data = {
 	.name		= "LCD",
+	.caps		= CLCD_CAP_ALL,
 	.check		= clcdfb_check,
 	.decode		= clcdfb_decode,
 	.setup		= nspire_clcd_setup,

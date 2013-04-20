@@ -34,8 +34,7 @@ static struct clcd_panel nspire_cx_lcd_panel = {
 	.width		= 65, /* ~6.50 cm */
 	.height		= 49, /* ~4.87 cm */
 	.tim2		= TIM2_IPC,
-	.cntl		= (CNTL_BGR | CNTL_LCDTFT | CNTL_LCDVCOMP(1) |
-				CNTL_LCDBPP16_565),
+	.cntl		= CNTL_LCDTFT | CNTL_LCDVCOMP(1),
 	.bpp		= 16,
 };
 
@@ -56,7 +55,7 @@ static struct clcd_panel nspire_classic_lcd_panel = {
 	.width		= 71, /* 7.11cm */
 	.height		= 53, /* 5.33cm */
 	.tim2		= 0x80007d0,
-	.cntl		= CNTL_LCDBPP8 | CNTL_LCDMONO8,
+	.cntl		= CNTL_LCDMONO8,
 	.bpp		= 8,
 	.grayscale	= 1
 };
