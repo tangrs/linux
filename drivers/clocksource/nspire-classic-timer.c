@@ -126,9 +126,9 @@ static int __init nspire_timer_add(struct device_node *node)
 	timer->timer2 = timer->base + IO_TIMER2;
 
 	timer->clk = of_clk_get(node, 0);
-	if (!timer->clk) {
-		ret = -EINVAL;
-		pr_err("Timer clock not found!\n");
+	if (IS_ERR(timer->clk)) {
+		ret = PTR_ERR(timer->clk);
+		pr_err("Timer clock not found! (error %d)\n", ret);
 		goto error_unmap;
 	}
 
@@ -196,21 +196,4 @@ error_free:
 	return ret;
 }
 
-bool timer_init;
-
-void __init nspire_classic_timer_init(void)
-{
-	struct device_node *node;
-
-	if (timer_init)
-		return;
-
-	for_each_compatible_node(node, NULL, DT_COMPAT) {
-		nspire_timer_add(node);
-	}
-
-	timer_init = 1;
-}
-
-CLOCKSOURCE_OF_DECLARE(nspire_classic_timer,
-		DT_COMPAT, nspire_classic_timer_init)
+CLOCKSOURCE_OF_DECLARE(nspire_classic_timer, DT_COMPAT, nspire_timer_add);

@@ -18,8 +18,7 @@
 #include <linux/clkdev.h>
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>
-
-#include <clocksource/nspire_classic_timer.h>
+#include <linux/clocksource.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach-types.h>
@@ -46,60 +45,6 @@ static struct map_desc nspire_io_desc[] __initdata = {
 		.type		= MT_DEVICE
 	}
 };
-
-#define TIMER_NAME_MAXLEN 32
-static void __init nspire_add_sp804_timers(void)
-{
-	struct device_node *of_timer;
-	int clockevents_found = 0;
-
-	for_each_compatible_node(of_timer, NULL, "arm,sp804") {
-		struct resource res;
-		void __iomem *base;
-		char *name;
-		struct clk *clk;
-		int irq;
-
-		clk = of_clk_get_by_name(of_timer, NULL);
-		if (WARN_ON(!clk))
-			continue;
-
-		name = kzalloc(TIMER_NAME_MAXLEN, GFP_ATOMIC);
-		if (!name)
-			break;
-
-		base = of_iomap(of_timer, 0);
-		if (WARN_ON(!base)) {
-			kfree(name);
-			continue;
-		}
-
-		of_address_to_resource(of_timer, 0, &res);
-		scnprintf(name, TIMER_NAME_MAXLEN, "%llx.%s",
-				(unsigned long long)res.start,
-				of_timer->name);
-
-		clk_register_clkdev(clk, name, "sp804");
-		if (!clockevents_found) {
-			irq = irq_of_parse_and_map(of_timer, 0);
-			if (irq) {
-				sp804_clockevents_init(base, irq, name);
-				clockevents_found = 1;
-				continue;
-			}
-		}
-
-		sp804_clocksource_init(base, name);
-	}
-}
-
-
-static void __init nspire_init_timer(void)
-{
-	of_clk_init(NULL);
-	nspire_classic_timer_init();
-	nspire_add_sp804_timers();
-}
 
 static void __init nspire_map_io(void)
 {
@@ -129,6 +74,12 @@ static void __init nspire_init(void)
 			nspire_auxdata, NULL);
 }
 
+static void __init nspire_init_time(void)
+{
+	of_clk_init(NULL);
+	clocksource_of_init();
+}
+
 static void nspire_restart(char mode, const char *cmd)
 {
 	void __iomem *base = ioremap(NSPIRE_MISC_PHYS_BASE, SZ_4K);
@@ -141,7 +92,7 @@ static void nspire_restart(char mode, const char *cmd)
 DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
 	.map_io		= nspire_map_io,
 	.init_irq	= irqchip_init,
-	.init_time	= nspire_init_timer,
+	.init_time	= nspire_init_time,
 	.init_machine	= nspire_init,
 	.dt_compat	= nspire_dt_match,
 	.restart	= nspire_restart,
