@@ -44,17 +44,18 @@
 
 };
 
+&base_clk {
+	io-type = "classic";
+};
+
+&ahb_clk {
+	io-type = "classic";
+};
+
 / {
 	memory {
 		device_type = "memory";
 		reg = <0x10000000 0x2000000>; /* 32 MB */
-	};
-
-	/* Not really a fixed clock but we'll fix this later */
-	apb_pclk: apb_pclk {
-		#clock-cells = <0>;
-		compatible = "fixed-clock";
-		clock-frequency = <30000000>;
 	};
 
 	ahb {

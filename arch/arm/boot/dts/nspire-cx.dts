@@ -35,6 +35,14 @@
 	compatible = "arm,sp804", "arm,primecell";
 };
 
+&base_clk {
+	io-type = "cx";
+};
+
+&ahb_clk {
+	io-type = "cx";
+};
+
 &keypad {
 	keymap = <
 	0x0000001c 	0x0001001c 	0x00040039
@@ -74,13 +82,6 @@
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
 		clock-frequency = <12000000>;
-	};
-
-	/* Not really a fixed clock but we'll fix this later */
-	apb_pclk: apb_pclk {
-		#clock-cells = <0>;
-		compatible = "fixed-clock";
-		clock-frequency = <33000000>;
 	};
 
 	ahb {
