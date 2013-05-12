@@ -21,8 +21,6 @@
 #include <linux/module.h>
 #include <linux/of.h>
 
-#include <linux/platform_data/nspire-keypad.h>
-
 #define KEYPAD_SCAN_MODE	0x00
 #define KEYPAD_CNTL		0x04
 #define KEYPAD_INT		0x08
@@ -34,6 +32,8 @@
 #define KEYPAD_UNKNOWN_INT	0x40
 #define KEYPAD_UNKNOWN_INT_STS	0x44
 
+#define KEYPAD_BITMASK_COLS	11
+#define KEYPAD_BITMASK_ROWS	8
 
 struct nspire_keypad {
 	spinlock_t lock;
@@ -45,8 +45,14 @@ struct nspire_keypad {
 	struct input_dev *input;
 	struct clk *clk;
 
-	struct nspire_keypad_data options;
+	struct matrix_keymap_data *keymap;
 	int row_shift;
+
+	/* Maximum delay estimated assuming 33MHz APB */
+	u32 scan_interval;	/* In microseconds (~2000us max) */
+	u32 row_delay;		/* In microseconds (~500us max) */
+
+	bool active_low;
 };
 
 static inline void nspire_report_state(struct nspire_keypad *keypad,
@@ -55,7 +61,7 @@ static inline void nspire_report_state(struct nspire_keypad *keypad,
 	int code = MATRIX_SCAN_CODE(row, col, keypad->row_shift);
 	unsigned short *keymap = keypad->input->keycode;
 
-	state = keypad->options.active_low ? !state : !!state;
+	state = keypad->active_low ? !state : !!state;
 	input_report_key(keypad->input, keymap[code], state);
 }
 
@@ -96,11 +102,11 @@ static int nspire_keypad_chip_init(struct nspire_keypad *keypad)
 	if (cycles_per_us == 0)
 		cycles_per_us = 1;
 
-	delay_cycles = cycles_per_us * keypad->options.scan_interval;
+	delay_cycles = cycles_per_us * keypad->scan_interval;
 	WARN_ON(delay_cycles >= (1<<16)); /* Overflow */
 	delay_cycles &= 0xffff;
 
-	row_delay_cycles = cycles_per_us * keypad->options.row_delay;
+	row_delay_cycles = cycles_per_us * keypad->row_delay;
 	WARN_ON(row_delay_cycles >= (1<<14)); /* Overflow */
 	row_delay_cycles &= 0x3fff;
 
@@ -128,7 +134,6 @@ static int nspire_keypad_chip_init(struct nspire_keypad *keypad)
 
 static int nspire_keypad_probe(struct platform_device *pdev)
 {
-	const struct nspire_keypad_data *plat = pdev->dev.platform_data;
 	const struct device_node *of_node = pdev->dev.of_node;
 	struct nspire_keypad *keypad;
 	struct input_dev *input;
@@ -167,30 +172,24 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 		goto err_free_mem;
 	}
 
-	if (plat) {
-		memcpy(&keypad->options, plat, sizeof(*plat));
-	} else {
-		/* Load values from device tree */
-
-		error = of_property_read_u32(of_node, "scan-interval",
-				&keypad->options.scan_interval);
-		if (error) {
-			dev_err(&pdev->dev, "failed to get scan-interval\n");
-			goto err_free_mem;
-		}
-
-		error = of_property_read_u32(of_node, "row-delay",
-				&keypad->options.row_delay);
-		if (error) {
-			dev_err(&pdev->dev, "failed to get row-delay\n");
-			goto err_free_mem;
-		}
-
-		keypad->options.active_low = of_property_read_bool(of_node,
-				"active-low");
-
-		keypad->options.keymap = NULL;
+	error = of_property_read_u32(of_node, "scan-interval",
+			&keypad->scan_interval);
+	if (error) {
+		dev_err(&pdev->dev, "failed to get scan-interval\n");
+		goto err_free_mem;
 	}
+
+	error = of_property_read_u32(of_node, "row-delay",
+			&keypad->row_delay);
+	if (error) {
+		dev_err(&pdev->dev, "failed to get row-delay\n");
+		goto err_free_mem;
+	}
+
+	keypad->active_low = of_property_read_bool(of_node,
+			"active-low");
+
+	keypad->keymap = NULL;
 
 	keypad->row_shift = get_count_order(KEYPAD_BITMASK_COLS);
 	keypad->irq = irq;
@@ -218,7 +217,7 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 	set_bit(EV_KEY, input->evbit);
 	set_bit(EV_REP, input->evbit);
 
-	error = matrix_keypad_build_keymap(keypad->options.keymap, "keymap",
+	error = matrix_keypad_build_keymap(keypad->keymap, "keymap",
 			KEYPAD_BITMASK_ROWS, KEYPAD_BITMASK_COLS, NULL, input);
 	if (error) {
 		dev_err(&pdev->dev, "building keymap failed\n");
@@ -250,9 +249,9 @@ static int nspire_keypad_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "TI-NSPIRE keypad at %#08x ("
 			"scan_interval=%uus,row_delay=%uus"
 			"%s)\n", res->start,
-			keypad->options.row_delay,
-			keypad->options.scan_interval,
-			keypad->options.active_low ? ",active_low" : "");
+			keypad->row_delay,
+			keypad->scan_interval,
+			keypad->active_low ? ",active_low" : "");
 
 	return 0;
 
@@ -307,7 +306,7 @@ static struct platform_driver nspire_keypad_driver = {
 		.of_match_table = of_match_ptr(nspire_keypad_dt_match),
 	},
 	.remove = nspire_keypad_remove,
-	.probe = nspire_keypad_probe
+	.probe = nspire_keypad_probe,
 };
 
 module_platform_driver(nspire_keypad_driver);
