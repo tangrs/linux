@@ -593,6 +593,7 @@ struct signal_struct {
 #endif
 #ifdef CONFIG_AUDIT
 	unsigned audit_tty;
+	unsigned audit_tty_log_passwd;
 	struct tty_audit_buf *tty_audit_buf;
 #endif
 #ifdef CONFIG_CGROUPS
@@ -1410,6 +1411,10 @@ struct task_struct {
 #endif
 #ifdef CONFIG_UPROBES
 	struct uprobe_task *utask;
+#endif
+#if defined(CONFIG_BCACHE) || defined(CONFIG_BCACHE_MODULE)
+	unsigned int	sequential_io;
+	unsigned int	sequential_io_avg;
 #endif
 };
 
