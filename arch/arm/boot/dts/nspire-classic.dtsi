@@ -25,7 +25,6 @@
 	reg-shift = <2>;
 	reg-io-width = <4>;
 	clocks = <&apb_pclk>;
-	clock-names = "apb_pclk";
 	no-loopback-test;
 };
 

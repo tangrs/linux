@@ -46,7 +46,6 @@
 		compatible = "nspire-ahb-divider";
 		reg = <0x900B0000 0x2>;
 		clocks = <&base_clk>;
-		clock-names = "base_clk";
 	};
 
 	apb_pclk: apb_pclk {
@@ -55,7 +54,6 @@
 		clock-div = <2>;
 		clock-mult = <1>;
 		clocks = <&ahb_clk>;
-		clock-names = "ahb_clk";
 	};
 
 	ahb {
@@ -127,7 +125,6 @@
 				reg = <0x900C0000 0x1000>;
 
 				clocks = <&timer_clk>;
-				clock-names = "timer_clk";
 			};
 
 			timer1: timer@900D0000 {
@@ -135,7 +132,6 @@
 				interrupts = <19>;
 
 				clocks = <&timer_clk>;
-				clock-names = "timer_clk";
 			};
 
 			watchdog: watchdog@90060000 {
@@ -167,7 +163,6 @@
 				row-delay = <200>;
 
 				clocks = <&apb_pclk>;
-				clock-names = "apb_pclk";
 			};
 
 			contrast: contrast@900F0000 {
