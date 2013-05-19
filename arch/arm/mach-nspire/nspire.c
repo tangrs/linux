@@ -43,6 +43,12 @@ static struct map_desc nspire_io_desc[] __initdata = {
 		.pfn		= __phys_to_pfn(NSPIRE_EARLY_UART_PHYS_BASE),
 		.length		= SZ_4K,
 		.type		= MT_DEVICE
+	},
+	{
+		.virtual	=  NSPIRE_PWR_VIRT_BASE,
+		.pfn		= __phys_to_pfn(NSPIRE_PWR_PHYS_BASE),
+		.length		= SZ_4K,
+		.type		= MT_DEVICE
 	}
 };
 
@@ -67,6 +73,17 @@ static struct of_dev_auxdata nspire_auxdata[] __initdata = {
 			NULL, &nspire_clcd_data),
 	{ }
 };
+
+static void __init nspire_early_init(void)
+{
+	void __iomem *pwr = IOMEM(NSPIRE_PWR_VIRT_BASE);
+
+	/* Re-enable bus access to all peripherals */
+	writel(0, pwr + NSPIRE_PWR_BUS_DISABLE1);
+	writel(0, pwr + NSPIRE_PWR_BUS_DISABLE2);
+
+	pr_info("Re-enabled bus access to all peripherals\n");
+}
 
 static void __init nspire_init(void)
 {
@@ -94,6 +111,7 @@ DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
 	.init_irq	= irqchip_init,
 	.init_time	= nspire_init_time,
 	.init_machine	= nspire_init,
+	.init_early	= nspire_early_init,
 	.dt_compat	= nspire_dt_match,
 	.restart	= nspire_restart,
 MACHINE_END
