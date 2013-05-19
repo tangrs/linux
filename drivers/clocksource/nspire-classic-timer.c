@@ -29,12 +29,8 @@
 #define IO_TIMER1	0x00
 #define IO_TIMER2	0x0C
 
-#define IO_MATCH1	0x18
-#define IO_MATCH2	0x1C
-#define IO_MATCH3	0x20
-#define IO_MATCH4	0x24
-#define IO_MATCH5	0x28
-#define IO_MATCH6	0x2C
+#define IO_MATCH_BEGIN	0x18
+#define IO_MATCH(x)	(IO_MATCH_BEGIN + ((x)<<2))
 
 #define IO_INTR_STS	0x00
 #define IO_INTR_ACK	0x00
@@ -47,13 +43,14 @@
 #define CNTL_DEC	(0<<3)
 
 #define CNTL_TOZERO	0
-#define CNTL_MATCH1	1
-#define CNTL_MATCH2	2
-#define CNTL_MATCH3	3
-#define CNTL_MATCH4	4
-#define CNTL_MATCH5	5
-#define CNTL_MATCH6	6
+#define CNTL_MATCH(x)	((x) + 1)
 #define CNTL_FOREVER	7
+
+/* There are 6 match registers but we only use one. */
+#define TIMER_MATCH	0
+
+#define TIMER_INTR_MSK	(1<<(TIMER_MATCH))
+#define TIMER_INTR_ALL	0x3F
 
 struct nspire_timer {
 	void __iomem *base;
@@ -81,24 +78,59 @@ static int nspire_timer_set_event(unsigned long delta,
 	local_irq_save(flags);
 
 	writel(delta, timer->timer1 + IO_CURRENT_VAL);
-	writel(CNTL_RUN_TIMER | CNTL_DEC | CNTL_MATCH1,
+	writel(CNTL_RUN_TIMER | CNTL_DEC | CNTL_MATCH(TIMER_MATCH),
 			timer->timer1 + IO_CONTROL);
 
 	local_irq_restore(flags);
 
 	return 0;
 }
+
 static void nspire_timer_set_mode(enum clock_event_mode mode,
-		struct clock_event_device *evt)
+		struct clock_event_device *dev)
 {
-	evt->mode = mode;
+	unsigned long flags;
+	struct nspire_timer *timer = container_of(dev,
+			struct nspire_timer,
+			clkevt);
+
+	local_irq_save(flags);
+
+	switch (mode) {
+	case CLOCK_EVT_MODE_PERIODIC:
+		/* Unsupported */
+		break;
+	case CLOCK_EVT_MODE_RESUME:
+	case CLOCK_EVT_MODE_ONESHOT:
+		/* Enable timer interrupts */
+		writel(TIMER_INTR_MSK, timer->interrupt_regs + IO_INTR_MSK);
+		writel(TIMER_INTR_ALL, timer->interrupt_regs + IO_INTR_ACK);
+		dev->mode = mode;
+		break;
+	case CLOCK_EVT_MODE_SHUTDOWN:
+	case CLOCK_EVT_MODE_UNUSED:
+		/* Disable timer interrupts */
+		writel(0, timer->interrupt_regs + IO_INTR_MSK);
+		writel(TIMER_INTR_ALL, timer->interrupt_regs + IO_INTR_ACK);
+		/* Stop timer */
+		writel(CNTL_STOP_TIMER, timer->timer1 + IO_CONTROL);
+		dev->mode = mode;
+		break;
+	}
+
+	local_irq_restore(flags);
 }
 
 static irqreturn_t nspire_timer_interrupt(int irq, void *dev_id)
 {
 	struct nspire_timer *timer = dev_id;
+	u32 intr;
 
-	writel((1<<0), timer->interrupt_regs + IO_INTR_ACK);
+	intr = readl(timer->interrupt_regs + IO_INTR_ACK);
+	if (!(intr & TIMER_INTR_MSK))
+		return IRQ_NONE;
+
+	writel(TIMER_INTR_MSK, timer->interrupt_regs + IO_INTR_ACK);
 	writel(CNTL_STOP_TIMER, timer->timer1 + IO_CONTROL);
 
 	if (timer->clkevt.event_handler)
@@ -149,7 +181,6 @@ static int __init nspire_timer_add(struct device_node *node)
 		timer->clkevt.set_next_event = nspire_timer_set_event;
 		timer->clkevt.set_mode	= nspire_timer_set_mode;
 		timer->clkevt.rating	= 200;
-		timer->clkevt.shift	= 32;
 		timer->clkevt.cpumask	= cpu_all_mask;
 		timer->clkevt.features	=
 			CLOCK_EVT_FEAT_ONESHOT;
@@ -157,12 +188,12 @@ static int __init nspire_timer_add(struct device_node *node)
 		writel(CNTL_STOP_TIMER, timer->timer1 + IO_CONTROL);
 		writel(0, timer->timer1 + IO_DIVIDER);
 
-		/* Mask out interrupts except the one we're using */
-		writel((1<<0), timer->interrupt_regs + IO_INTR_MSK);
-		writel(0x3F, timer->interrupt_regs + IO_INTR_ACK);
+		/* Start with timer interrupts disabled */
+		writel(0, timer->interrupt_regs + IO_INTR_MSK);
+		writel(TIMER_INTR_ALL, timer->interrupt_regs + IO_INTR_ACK);
 
 		/* Interrupt to occur when timer value matches 0 */
-		writel(0, timer->base + IO_MATCH1);
+		writel(0, timer->base + IO_MATCH(TIMER_MATCH));
 
 		timer->clkevt_irq.name	= timer->clockevent_name;
 		timer->clkevt_irq.handler = nspire_timer_interrupt;
@@ -173,7 +204,7 @@ static int __init nspire_timer_add(struct device_node *node)
 		setup_irq(timer->irqnr, &timer->clkevt_irq);
 
 		clockevents_config_and_register(&timer->clkevt,
-				clk_get_rate(timer->clk), 0x0001, 0xfffe);
+				clk_get_rate(timer->clk), 0x0001, 0xffff);
 		pr_info("Added %s as clockevent\n", timer->clockevent_name);
 	}
 
