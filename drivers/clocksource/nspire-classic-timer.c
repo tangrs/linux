@@ -177,6 +177,9 @@ static int __init nspire_timer_add(struct device_node *node)
 		pr_info("Added %s as clockevent\n", timer->clockevent_name);
 	}
 
+	writel(CNTL_STOP_TIMER, timer->timer2 + IO_CONTROL);
+	writel(0, timer->timer2 + IO_CURRENT_VAL);
+	writel(0, timer->timer2 + IO_DIVIDER);
 	writel(CNTL_RUN_TIMER | CNTL_FOREVER | CNTL_INC,
 			timer->timer2 + IO_CONTROL);
 
