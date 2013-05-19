@@ -44,11 +44,11 @@
 };
 
 &base_clk {
-	io-type = "classic";
+	compatible = "nspire-clock-classic";
 };
 
 &ahb_clk {
-	io-type = "classic";
+	compatible = "nspire-ahb-divider-classic";
 };
 
 / {

@@ -37,13 +37,11 @@
 
 	base_clk: base_clk {
 		#clock-cells = <0>;
-		compatible = "nspire-clock";
 		reg = <0x900B0000 0x2>;
 	};
 
 	ahb_clk: ahb_clk {
 		#clock-cells = <0>;
-		compatible = "nspire-ahb-divider";
 		reg = <0x900B0000 0x2>;
 		clocks = <&base_clk>;
 	};

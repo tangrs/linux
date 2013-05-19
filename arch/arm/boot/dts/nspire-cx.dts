@@ -36,11 +36,11 @@
 };
 
 &base_clk {
-	io-type = "cx";
+	compatible = "nspire-clock-cx";
 };
 
 &ahb_clk {
-	io-type = "cx";
+	compatible = "nspire-ahb-divider-cx";
 };
 
 &keypad {
