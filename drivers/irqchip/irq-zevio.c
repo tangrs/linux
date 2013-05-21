@@ -174,4 +174,4 @@ static int __init nspire_of_init(struct device_node *node,
 	return 0;
 }
 
-IRQCHIP_DECLARE(nspire_classic_irq, "nspire-classic-intc", nspire_of_init);
+IRQCHIP_DECLARE(nspire_classic_irq, "lsi,zevio-intc", nspire_of_init);

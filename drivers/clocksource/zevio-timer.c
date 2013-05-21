@@ -1,5 +1,5 @@
 /*
- *  linux/drivers/clocksource/nspire-classic-timer.c
+ *  linux/drivers/clocksource/zevio-timer.c
  *
  *  Copyright (C) 2013 Daniel Tang <tangrs@tangrs.id.au>
  *
@@ -19,8 +19,6 @@
 #include <linux/cpumask.h>
 #include <linux/interrupt.h>
 #include <linux/slab.h>
-
-#define DT_COMPAT	"nspire-classic-timer"
 
 #define IO_CURRENT_VAL	0x00
 #define IO_DIVIDER	0x04
@@ -52,7 +50,7 @@
 #define TIMER_INTR_MSK	(1<<(TIMER_MATCH))
 #define TIMER_INTR_ALL	0x3F
 
-struct nspire_timer {
+struct zevio_timer {
 	void __iomem *base;
 	void __iomem *timer1, *timer2;
 	void __iomem *interrupt_regs;
@@ -67,12 +65,12 @@ struct nspire_timer {
 	char clockevent_name[64];
 };
 
-static int nspire_timer_set_event(unsigned long delta,
+static int zevio_timer_set_event(unsigned long delta,
 		struct clock_event_device *dev)
 {
 	unsigned long flags;
-	struct nspire_timer *timer = container_of(dev,
-			struct nspire_timer,
+	struct zevio_timer *timer = container_of(dev,
+			struct zevio_timer,
 			clkevt);
 
 	local_irq_save(flags);
@@ -86,12 +84,12 @@ static int nspire_timer_set_event(unsigned long delta,
 	return 0;
 }
 
-static void nspire_timer_set_mode(enum clock_event_mode mode,
+static void zevio_timer_set_mode(enum clock_event_mode mode,
 		struct clock_event_device *dev)
 {
 	unsigned long flags;
-	struct nspire_timer *timer = container_of(dev,
-			struct nspire_timer,
+	struct zevio_timer *timer = container_of(dev,
+			struct zevio_timer,
 			clkevt);
 
 	local_irq_save(flags);
@@ -121,9 +119,9 @@ static void nspire_timer_set_mode(enum clock_event_mode mode,
 	local_irq_restore(flags);
 }
 
-static irqreturn_t nspire_timer_interrupt(int irq, void *dev_id)
+static irqreturn_t zevio_timer_interrupt(int irq, void *dev_id)
 {
-	struct nspire_timer *timer = dev_id;
+	struct zevio_timer *timer = dev_id;
 	u32 intr;
 
 	intr = readl(timer->interrupt_regs + IO_INTR_ACK);
@@ -139,9 +137,9 @@ static irqreturn_t nspire_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static int __init nspire_timer_add(struct device_node *node)
+static int __init zevio_timer_add(struct device_node *node)
 {
-	struct nspire_timer *timer;
+	struct zevio_timer *timer;
 	struct resource res;
 	int ret;
 
@@ -178,8 +176,8 @@ static int __init nspire_timer_add(struct device_node *node)
 
 	if (timer->interrupt_regs && timer->irqnr) {
 		timer->clkevt.name	= timer->clockevent_name;
-		timer->clkevt.set_next_event = nspire_timer_set_event;
-		timer->clkevt.set_mode	= nspire_timer_set_mode;
+		timer->clkevt.set_next_event = zevio_timer_set_event;
+		timer->clkevt.set_mode	= zevio_timer_set_mode;
 		timer->clkevt.rating	= 200;
 		timer->clkevt.cpumask	= cpu_all_mask;
 		timer->clkevt.features	=
@@ -196,7 +194,7 @@ static int __init nspire_timer_add(struct device_node *node)
 		writel(0, timer->base + IO_MATCH(TIMER_MATCH));
 
 		timer->clkevt_irq.name	= timer->clockevent_name;
-		timer->clkevt_irq.handler = nspire_timer_interrupt;
+		timer->clkevt_irq.handler = zevio_timer_interrupt;
 		timer->clkevt_irq.dev_id = timer;
 		timer->clkevt_irq.flags	=
 			IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL;
@@ -230,4 +228,4 @@ error_free:
 	return ret;
 }
 
-CLOCKSOURCE_OF_DECLARE(nspire_classic_timer, DT_COMPAT, nspire_timer_add);
+CLOCKSOURCE_OF_DECLARE(zevio_timer, "lsi,zevio-timer", zevio_timer_add);

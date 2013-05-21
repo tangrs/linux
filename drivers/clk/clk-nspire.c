@@ -103,9 +103,9 @@ static void __init nspire_ahbdiv_setup_classic(struct device_node *node)
 	nspire_ahbdiv_setup(node, nspire_clkinfo_classic);
 }
 
-CLK_OF_DECLARE(nspire_ahbdiv_cx, "nspire-ahb-divider-cx",
+CLK_OF_DECLARE(nspire_ahbdiv_cx, "lsi,nspire-cx-ahb-divider",
 		nspire_ahbdiv_setup_cx);
-CLK_OF_DECLARE(nspire_ahbdiv_classic, "nspire-ahb-divider-classic",
+CLK_OF_DECLARE(nspire_ahbdiv_classic, "lsi,nspire-classic-ahb-divider",
 		nspire_ahbdiv_setup_classic);
 
 static void __init nspire_clk_setup(struct device_node *node,
@@ -150,6 +150,6 @@ static void __init nspire_clk_setup_classic(struct device_node *node)
 	nspire_clk_setup(node, nspire_clkinfo_classic);
 }
 
-CLK_OF_DECLARE(nspire_clk_cx, "nspire-clock-cx", nspire_clk_setup_cx);
-CLK_OF_DECLARE(nspire_clk_classic, "nspire-clock-classic",
+CLK_OF_DECLARE(nspire_clk_cx, "lsi,nspire-cx-clock", nspire_clk_setup_cx);
+CLK_OF_DECLARE(nspire_clk_classic, "lsi,nspire-classic-clock",
 		nspire_clk_setup_classic);

@@ -36,11 +36,11 @@
 };
 
 &base_clk {
-	compatible = "nspire-clock-cx";
+	compatible = "lsi,nspire-cx-clock";
 };
 
 &ahb_clk {
-	compatible = "nspire-ahb-divider-cx";
+	compatible = "lsi,nspire-cx-ahb-divider";
 };
 
 &keypad {
@@ -71,7 +71,7 @@
 
 / {
 	model = "TI-NSPIRE CX";
-	compatible = "arm,nspire-cx";
+	compatible = "ti,nspire-cx";
 
 	memory {
 		device_type = "memory";

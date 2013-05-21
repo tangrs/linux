@@ -153,7 +153,7 @@
 			};
 
 			keypad: input@900E0000 {
-				compatible = "nspire-keypad";
+				compatible = "ti,nspire-keypad";
 				reg = <0x900E0000 0x1000>;
 				interrupts = <16>;
 

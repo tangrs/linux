@@ -41,5 +41,5 @@
 
 / {
 	model = "TI-NSPIRE Clickpad";
-	compatible = "arm,nspire-clp";
+	compatible = "ti,nspire-clp";
 };

@@ -16,7 +16,7 @@
 };
 
 &fast_timer {
-	/* compatible = "nspire-classic-timer"; */
+	/* compatible = "lsi,zevio-timer"; */
 	reg = <0x90010000 0x1000>, <0x900A0010 0x8>;
 };
 
@@ -29,12 +29,12 @@
 };
 
 &timer0 {
-	/* compatible = "nspire-classic-timer"; */
+	/* compatible = "lsi,zevio-timer"; */
 	reg = <0x900C0000 0x1000>, <0x900A0018 0x8>;
 };
 
 &timer1 {
-	compatible = "nspire-classic-timer";
+	compatible = "lsi,zevio-timer";
 	reg = <0x900D0000 0x1000>, <0x900A0020 0x8>;
 };
 
@@ -44,11 +44,11 @@
 };
 
 &base_clk {
-	compatible = "nspire-clock-classic";
+	compatible = "lsi,nspire-classic-clock";
 };
 
 &ahb_clk {
-	compatible = "nspire-ahb-divider-classic";
+	compatible = "lsi,nspire-classic-ahb-divider";
 };
 
 / {
@@ -62,7 +62,7 @@
 		#size-cells = <1>;
 
 		intc: interrupt-controller@DC000000 {
-			compatible = "nspire-classic-intc";
+			compatible = "lsi,zevio-intc";
 			interrupt-controller;
 			reg = <0xDC000000 0x1000>;
 			#interrupt-cells = <1>;

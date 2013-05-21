@@ -293,7 +293,7 @@ static int nspire_keypad_remove(struct platform_device *pdev)
 }
 #ifdef CONFIG_OF
 static const struct of_device_id nspire_keypad_dt_match[] = {
-	{ .compatible = "nspire-keypad" },
+	{ .compatible = "ti,nspire-keypad" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, nspire_keypad_dt_match);

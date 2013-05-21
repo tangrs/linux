@@ -30,10 +30,10 @@
 #include "clcd.h"
 
 static const char *nspire_dt_match[] __initconst = {
-	"arm,nspire",
-	"arm,nspire-cx",
-	"arm,nspire-tp",
-	"arm,nspire-clp",
+	"ti,nspire",
+	"ti,nspire-cx",
+	"ti,nspire-tp",
+	"ti,nspire-clp",
 	NULL,
 };
 

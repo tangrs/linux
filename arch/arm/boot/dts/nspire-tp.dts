@@ -40,5 +40,5 @@
 
 / {
 	model = "TI-NSPIRE Touchpad";
-	compatible = "arm,nspire-tp";
+	compatible = "ti,nspire-tp";
 };
