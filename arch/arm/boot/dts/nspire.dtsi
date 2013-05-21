@@ -37,12 +37,12 @@
 
 	base_clk: base_clk {
 		#clock-cells = <0>;
-		reg = <0x900B0000 0x2>;
+		reg = <0x900B0024 0x4>;
 	};
 
 	ahb_clk: ahb_clk {
 		#clock-cells = <0>;
-		reg = <0x900B0000 0x2>;
+		reg = <0x900B0024 0x4>;
 		clocks = <&base_clk>;
 	};
 
