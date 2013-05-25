@@ -36,6 +36,7 @@ static struct clcd_panel nspire_cx_lcd_panel = {
 	.tim2		= TIM2_IPC,
 	.cntl		= CNTL_LCDTFT | CNTL_LCDVCOMP(1),
 	.bpp		= 16,
+	.caps		= CLCD_CAP_565,
 };
 
 static struct clcd_panel nspire_classic_lcd_panel = {
@@ -57,7 +58,8 @@ static struct clcd_panel nspire_classic_lcd_panel = {
 	.tim2		= 0x80007d0,
 	.cntl		= CNTL_LCDMONO8,
 	.bpp		= 8,
-	.grayscale	= 1
+	.grayscale	= 1,
+	.caps		= CLCD_CAP_444 | CLCD_CAP_888,
 };
 
 int nspire_clcd_setup(struct clcd_fb *fb)
