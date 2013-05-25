@@ -59,7 +59,7 @@ static struct clcd_panel nspire_classic_lcd_panel = {
 	.cntl		= CNTL_LCDMONO8,
 	.bpp		= 8,
 	.grayscale	= 1,
-	.caps		= CLCD_CAP_444 | CLCD_CAP_888,
+	.caps		= CLCD_CAP_5551,
 };
 
 int nspire_clcd_setup(struct clcd_fb *fb)
