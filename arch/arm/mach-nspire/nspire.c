@@ -39,12 +39,6 @@ static const char *nspire_dt_match[] __initconst = {
 
 static struct map_desc nspire_io_desc[] __initdata = {
 	{
-		.virtual	=  NSPIRE_EARLY_UART_VIRT_BASE,
-		.pfn		= __phys_to_pfn(NSPIRE_EARLY_UART_PHYS_BASE),
-		.length		= SZ_4K,
-		.type		= MT_DEVICE
-	},
-	{
 		.virtual	=  NSPIRE_PWR_VIRT_BASE,
 		.pfn		= __phys_to_pfn(NSPIRE_PWR_PHYS_BASE),
 		.length		= SZ_4K,
@@ -54,6 +48,7 @@ static struct map_desc nspire_io_desc[] __initdata = {
 
 static void __init nspire_map_io(void)
 {
+	debug_ll_io_init();
 	iotable_init(nspire_io_desc, ARRAY_SIZE(nspire_io_desc));
 }
 
@@ -107,11 +102,10 @@ static void nspire_restart(char mode, const char *cmd)
 }
 
 DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
+	.dt_compat	= nspire_dt_match,
 	.map_io		= nspire_map_io,
-	.init_irq	= irqchip_init,
+	.init_early	= nspire_early_init,
 	.init_time	= nspire_init_time,
 	.init_machine	= nspire_init,
-	.init_early	= nspire_early_init,
-	.dt_compat	= nspire_dt_match,
 	.restart	= nspire_restart,
 MACHINE_END
