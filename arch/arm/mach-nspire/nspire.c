@@ -37,19 +37,9 @@ static const char *nspire_dt_match[] __initconst = {
 	NULL,
 };
 
-static struct map_desc nspire_io_desc[] __initdata = {
-	{
-		.virtual	=  NSPIRE_PWR_VIRT_BASE,
-		.pfn		= __phys_to_pfn(NSPIRE_PWR_PHYS_BASE),
-		.length		= SZ_4K,
-		.type		= MT_DEVICE
-	}
-};
-
 static void __init nspire_map_io(void)
 {
 	debug_ll_io_init();
-	iotable_init(nspire_io_desc, ARRAY_SIZE(nspire_io_desc));
 }
 
 static struct clcd_board nspire_clcd_data = {
@@ -68,17 +58,6 @@ static struct of_dev_auxdata nspire_auxdata[] __initdata = {
 			NULL, &nspire_clcd_data),
 	{ }
 };
-
-static void __init nspire_early_init(void)
-{
-	void __iomem *pwr = IOMEM(NSPIRE_PWR_VIRT_BASE);
-
-	/* Re-enable bus access to all peripherals */
-	writel(0, pwr + NSPIRE_PWR_BUS_DISABLE1);
-	writel(0, pwr + NSPIRE_PWR_BUS_DISABLE2);
-
-	pr_info("Re-enabled bus access to all peripherals\n");
-}
 
 static void __init nspire_init(void)
 {
@@ -104,7 +83,6 @@ static void nspire_restart(char mode, const char *cmd)
 DT_MACHINE_START(NSPIRE, "TI-NSPIRE")
 	.dt_compat	= nspire_dt_match,
 	.map_io		= nspire_map_io,
-	.init_early	= nspire_early_init,
 	.init_time	= nspire_init_time,
 	.init_machine	= nspire_init,
 	.restart	= nspire_restart,
