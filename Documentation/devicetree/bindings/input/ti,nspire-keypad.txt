@@ -9,7 +9,7 @@ Required properties:
 - interrupts: The interrupt number for the peripheral.
 
 - scan-interval: How often to scan in us. Based on a APB speed of 33MHz, the
-	maximum delay time is ...us
+	maximum and minimum delay time is ~2000us and ~500us respectively
 
 - row-delay: How long to wait before scanning each row.
 
