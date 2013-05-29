@@ -95,9 +95,6 @@ static void zevio_timer_set_mode(enum clock_event_mode mode,
 	local_irq_save(flags);
 
 	switch (mode) {
-	case CLOCK_EVT_MODE_PERIODIC:
-		/* Unsupported */
-		break;
 	case CLOCK_EVT_MODE_RESUME:
 	case CLOCK_EVT_MODE_ONESHOT:
 		/* Enable timer interrupts */
@@ -113,6 +110,10 @@ static void zevio_timer_set_mode(enum clock_event_mode mode,
 		/* Stop timer */
 		writel(CNTL_STOP_TIMER, timer->timer1 + IO_CONTROL);
 		dev->mode = mode;
+		break;
+	case CLOCK_EVT_MODE_PERIODIC:
+	default:
+		/* Unsupported */
 		break;
 	}
 
