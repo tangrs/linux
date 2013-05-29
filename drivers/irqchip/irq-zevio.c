@@ -1,5 +1,5 @@
 /*
- *  linux/drivers/irqchip/irq-nspire-classic.c
+ *  linux/drivers/irqchip/irq-zevio.c
  *
  *  Copyright (C) 2013 Daniel Tang <tangrs@tangrs.id.au>
  *
@@ -40,9 +40,9 @@
 
 
 static void __iomem *irq_io_base;
-static struct irq_domain *nspire_irq_domain;
+static struct irq_domain *zevio_irq_domain;
 
-static void nspire_irq_ack(struct irq_data *irqd)
+static void zevio_irq_ack(struct irq_data *irqd)
 {
 	void __iomem *base = irq_io_base;
 
@@ -54,7 +54,7 @@ static void nspire_irq_ack(struct irq_data *irqd)
 	readl(base + IO_RESET);
 }
 
-static void nspire_irq_unmask(struct irq_data *irqd)
+static void zevio_irq_unmask(struct irq_data *irqd)
 {
 	void __iomem *base = irq_io_base;
 	int irqnr = irqd->hwirq;
@@ -69,7 +69,7 @@ static void nspire_irq_unmask(struct irq_data *irqd)
 	writel((1<<irqnr), base + IO_ENABLE);
 }
 
-static void nspire_irq_mask(struct irq_data *irqd)
+static void zevio_irq_mask(struct irq_data *irqd)
 {
 	void __iomem *base = irq_io_base;
 	int irqnr = irqd->hwirq;
@@ -84,25 +84,25 @@ static void nspire_irq_mask(struct irq_data *irqd)
 	writel((1<<irqnr), base + IO_DISABLE);
 }
 
-static struct irq_chip nspire_irq_chip = {
-	.name		= "nspire_irq",
-	.irq_ack	= nspire_irq_ack,
-	.irq_mask	= nspire_irq_mask,
-	.irq_unmask	= nspire_irq_unmask,
+static struct irq_chip zevio_irq_chip = {
+	.name		= "zevio_irq",
+	.irq_ack	= zevio_irq_ack,
+	.irq_mask	= zevio_irq_mask,
+	.irq_unmask	= zevio_irq_unmask,
 };
 
 
-static int nspire_irq_map(struct irq_domain *dom, unsigned int virq,
+static int zevio_irq_map(struct irq_domain *dom, unsigned int virq,
 		irq_hw_number_t hw)
 {
-	irq_set_chip_and_handler(virq, &nspire_irq_chip, handle_level_irq);
+	irq_set_chip_and_handler(virq, &zevio_irq_chip, handle_level_irq);
 	set_irq_flags(virq, IRQF_VALID | IRQF_PROBE);
 
 	return 0;
 }
 
-static struct irq_domain_ops nspire_irq_ops = {
-	.map = nspire_irq_map,
+static struct irq_domain_ops zevio_irq_ops = {
+	.map = zevio_irq_map,
 	.xlate = irq_domain_xlate_onecell,
 };
 
@@ -127,13 +127,13 @@ static int process_base(void __iomem *base, struct pt_regs *regs)
 		return 0;
 
 	irqnr = readl(base + IO_CURRENT);
-	irqnr = irq_find_mapping(nspire_irq_domain, irqnr);
+	irqnr = irq_find_mapping(zevio_irq_domain, irqnr);
 	handle_IRQ(irqnr, regs);
 
 	return 1;
 }
 
-asmlinkage void __exception_irq_entry nspire_handle_irq(struct pt_regs *regs)
+asmlinkage void __exception_irq_entry zevio_handle_irq(struct pt_regs *regs)
 {
 	while (process_base(irq_io_base + IO_FIQ_BASE, regs))
 		;
@@ -141,7 +141,7 @@ asmlinkage void __exception_irq_entry nspire_handle_irq(struct pt_regs *regs)
 		;
 }
 
-static int __init nspire_of_init(struct device_node *node,
+static int __init zevio_of_init(struct device_node *node,
 				struct device_node *parent)
 {
 	if (WARN_ON(irq_io_base))
@@ -163,15 +163,15 @@ static int __init nspire_of_init(struct device_node *node,
 	init_base(irq_io_base + IO_IRQ_BASE);
 	init_base(irq_io_base + IO_FIQ_BASE);
 
-	nspire_irq_domain = irq_domain_add_linear(node, MAX_INTRS,
-						 &nspire_irq_ops, NULL);
+	zevio_irq_domain = irq_domain_add_linear(node, MAX_INTRS,
+						 &zevio_irq_ops, NULL);
 
-	BUG_ON(!nspire_irq_domain);
+	BUG_ON(!zevio_irq_domain);
 
-	set_handle_irq(nspire_handle_irq);
+	set_handle_irq(zevio_handle_irq);
 
 	pr_info("TI-NSPIRE classic IRQ controller\n");
 	return 0;
 }
 
-IRQCHIP_DECLARE(nspire_classic_irq, "lsi,zevio-intc", nspire_of_init);
+IRQCHIP_DECLARE(zevio_irq, "lsi,zevio-intc", zevio_of_init);
