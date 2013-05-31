@@ -1,5 +1,4 @@
 /*
- *  linux/drivers/clk/clk-nspire.c
  *
  *  Copyright (C) 2013 Daniel Tang <tangrs@tangrs.id.au>
  *
@@ -64,7 +63,6 @@ static void nspire_clkinfo_classic(u32 val, struct nspire_clk_info *clk)
 	clk->base_cpu_ratio = EXTRACT(val, BASE_CPU) * 2;
 	clk->base_ahb_ratio = clk->base_cpu_ratio * (EXTRACT(val, CPU_AHB) + 1);
 }
-#undef EXTRACT
 
 static void __init nspire_ahbdiv_setup(struct device_node *node,
 		void (*get_clkinfo)(u32, struct nspire_clk_info *))
