@@ -5,6 +5,7 @@ config ARCH_NSPIRE
 	select CPU_ARM926T
 	select COMMON_CLK
 	select GENERIC_CLOCKEVENTS
+	select GENERIC_IRQ_CHIP
 	select SPARSE_IRQ
 	select ARM_AMBA
 	select ARM_VIC

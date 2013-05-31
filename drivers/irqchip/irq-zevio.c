@@ -38,73 +38,19 @@
 #define MAX_INTRS	32
 #define FIQ_START	MAX_INTRS
 
-
-static void __iomem *irq_io_base;
 static struct irq_domain *zevio_irq_domain;
+static void __iomem *zevio_irq_io;
 
 static void zevio_irq_ack(struct irq_data *irqd)
 {
-	void __iomem *base = irq_io_base;
+	struct irq_chip_generic *gc = irq_data_get_irq_chip_data(irqd);
+	struct irq_chip_regs *regs =
+		&container_of(irqd->chip, struct irq_chip_type, chip)->regs;
 
-	if (irqd->hwirq < FIQ_START)
-		base += IO_IRQ_BASE;
-	else
-		base += IO_FIQ_BASE;
-
-	readl(base + IO_RESET);
+	irq_gc_lock(gc);
+	readl(gc->reg_base + regs->ack);
+	irq_gc_unlock(gc);
 }
-
-static void zevio_irq_unmask(struct irq_data *irqd)
-{
-	void __iomem *base = irq_io_base;
-	int irqnr = irqd->hwirq;
-
-	if (irqnr < FIQ_START) {
-		base += IO_IRQ_BASE;
-	} else {
-		irqnr -= MAX_INTRS;
-		base += IO_FIQ_BASE;
-	}
-
-	writel((1<<irqnr), base + IO_ENABLE);
-}
-
-static void zevio_irq_mask(struct irq_data *irqd)
-{
-	void __iomem *base = irq_io_base;
-	int irqnr = irqd->hwirq;
-
-	if (irqnr < FIQ_START) {
-		base += IO_IRQ_BASE;
-	} else {
-		irqnr -= FIQ_START;
-		base += IO_FIQ_BASE;
-	}
-
-	writel((1<<irqnr), base + IO_DISABLE);
-}
-
-static struct irq_chip zevio_irq_chip = {
-	.name		= "zevio_irq",
-	.irq_ack	= zevio_irq_ack,
-	.irq_mask	= zevio_irq_mask,
-	.irq_unmask	= zevio_irq_unmask,
-};
-
-
-static int zevio_irq_map(struct irq_domain *dom, unsigned int virq,
-		irq_hw_number_t hw)
-{
-	irq_set_chip_and_handler(virq, &zevio_irq_chip, handle_level_irq);
-	set_irq_flags(virq, IRQF_VALID | IRQF_PROBE);
-
-	return 0;
-}
-
-static struct irq_domain_ops zevio_irq_ops = {
-	.map = zevio_irq_map,
-	.xlate = irq_domain_xlate_onecell,
-};
 
 static void init_base(void __iomem *base)
 {
@@ -118,55 +64,58 @@ static void init_base(void __iomem *base)
 	readl(base + IO_RESET);
 }
 
-static int process_base(void __iomem *base, struct pt_regs *regs)
+asmlinkage void __exception_irq_entry zevio_handle_irq(struct pt_regs *regs)
 {
 	int irqnr;
 
-
-	if (!readl(base + IO_STATUS))
-		return 0;
-
-	irqnr = readl(base + IO_CURRENT);
-	irqnr = irq_find_mapping(zevio_irq_domain, irqnr);
-	handle_IRQ(irqnr, regs);
-
-	return 1;
-}
-
-asmlinkage void __exception_irq_entry zevio_handle_irq(struct pt_regs *regs)
-{
-	while (process_base(irq_io_base + IO_FIQ_BASE, regs))
-		;
-	while (process_base(irq_io_base + IO_IRQ_BASE, regs))
-		;
+	while (readl(zevio_irq_io + IO_STATUS)) {
+		irqnr = readl(zevio_irq_io + IO_CURRENT);
+		irqnr = irq_find_mapping(zevio_irq_domain, irqnr);
+		handle_IRQ(irqnr, regs);
+	};
 }
 
 static int __init zevio_of_init(struct device_node *node,
 				struct device_node *parent)
 {
-	if (WARN_ON(irq_io_base))
+	struct irq_chip_generic *gc;
+	int irq_base;
+
+	if (WARN_ON(zevio_irq_io))
 		return -EBUSY;
 
-	irq_io_base = of_iomap(node, 0);
-	BUG_ON(!irq_io_base);
+	zevio_irq_io = of_iomap(node, 0);
+	BUG_ON(!zevio_irq_io);
 
 	/* Do not invert interrupt status bits */
-	writel(~0, irq_io_base + IO_INVERT_SEL);
+	writel(~0, zevio_irq_io + IO_INVERT_SEL);
 
 	/* Disable sticky interrupts */
-	writel(0, irq_io_base + IO_STICKY_SEL);
+	writel(0, zevio_irq_io + IO_STICKY_SEL);
 
 	/* We don't use IRQ priorities. Set each IRQ to highest priority. */
-	memset_io(irq_io_base + IO_PRIORITY_SEL, 0, MAX_INTRS * sizeof(u32));
+	memset_io(zevio_irq_io + IO_PRIORITY_SEL, 0, MAX_INTRS * sizeof(u32));
 
 	/* Init IRQ and FIQ */
-	init_base(irq_io_base + IO_IRQ_BASE);
-	init_base(irq_io_base + IO_FIQ_BASE);
+	init_base(zevio_irq_io + IO_IRQ_BASE);
+	init_base(zevio_irq_io + IO_FIQ_BASE);
 
-	zevio_irq_domain = irq_domain_add_linear(node, MAX_INTRS,
-						 &zevio_irq_ops, NULL);
+	irq_base = irq_alloc_descs(-1, 0, MAX_INTRS, numa_node_id());
+	zevio_irq_domain = irq_domain_add_legacy(node, MAX_INTRS, irq_base, 0,
+		&irq_domain_simple_ops, NULL);
 
-	BUG_ON(!zevio_irq_domain);
+	gc = irq_alloc_generic_chip("zevio_intc", 1, irq_base, zevio_irq_io,
+		handle_level_irq);
+	gc->chip_types[0].chip.irq_ack		= zevio_irq_ack;
+	gc->chip_types[0].chip.irq_mask		= irq_gc_mask_disable_reg;
+	gc->chip_types[0].chip.irq_unmask	= irq_gc_unmask_enable_reg;
+	gc->chip_types[0].regs.mask		= IO_IRQ_BASE + IO_ENABLE;
+	gc->chip_types[0].regs.enable		= IO_IRQ_BASE + IO_ENABLE;
+	gc->chip_types[0].regs.disable		= IO_IRQ_BASE + IO_DISABLE;
+	gc->chip_types[0].regs.ack		= IO_IRQ_BASE + IO_RESET;
+
+	irq_setup_generic_chip(gc, IRQ_MSK(MAX_INTRS), IRQ_GC_INIT_MASK_CACHE,
+		IRQ_NOREQUEST, 0);
 
 	set_handle_irq(zevio_handle_irq);
 
