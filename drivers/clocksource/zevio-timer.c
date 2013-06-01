@@ -28,17 +28,17 @@
 #define IO_TIMER2	0x0C
 
 #define IO_MATCH_BEGIN	0x18
-#define IO_MATCH(x)	(IO_MATCH_BEGIN + ((x)<<2))
+#define IO_MATCH(x)	(IO_MATCH_BEGIN + ((x) << 2))
 
 #define IO_INTR_STS	0x00
 #define IO_INTR_ACK	0x00
 #define IO_INTR_MSK	0x04
 
-#define CNTL_STOP_TIMER	(1<<4)
-#define CNTL_RUN_TIMER	(0<<4)
+#define CNTL_STOP_TIMER	(1 << 4)
+#define CNTL_RUN_TIMER	(0 << 4)
 
-#define CNTL_INC	(1<<3)
-#define CNTL_DEC	(0<<3)
+#define CNTL_INC	(1 << 3)
+#define CNTL_DEC	(0 << 3)
 
 #define CNTL_TOZERO	0
 #define CNTL_MATCH(x)	((x) + 1)
@@ -47,15 +47,13 @@
 /* There are 6 match registers but we only use one. */
 #define TIMER_MATCH	0
 
-#define TIMER_INTR_MSK	(1<<(TIMER_MATCH))
+#define TIMER_INTR_MSK	(1 << (TIMER_MATCH))
 #define TIMER_INTR_ALL	0x3F
 
 struct zevio_timer {
 	void __iomem *base;
 	void __iomem *timer1, *timer2;
 	void __iomem *interrupt_regs;
-
-	int irqnr;
 
 	struct clk *clk;
 	struct clock_event_device clkevt;
@@ -66,33 +64,23 @@ struct zevio_timer {
 };
 
 static int zevio_timer_set_event(unsigned long delta,
-		struct clock_event_device *dev)
+				 struct clock_event_device *dev)
 {
-	unsigned long flags;
-	struct zevio_timer *timer = container_of(dev,
-			struct zevio_timer,
-			clkevt);
-
-	local_irq_save(flags);
+	struct zevio_timer *timer = container_of(dev, struct zevio_timer,
+						 clkevt);
 
 	writel(delta, timer->timer1 + IO_CURRENT_VAL);
 	writel(CNTL_RUN_TIMER | CNTL_DEC | CNTL_MATCH(TIMER_MATCH),
 			timer->timer1 + IO_CONTROL);
 
-	local_irq_restore(flags);
-
 	return 0;
 }
 
 static void zevio_timer_set_mode(enum clock_event_mode mode,
-		struct clock_event_device *dev)
+				 struct clock_event_device *dev)
 {
-	unsigned long flags;
-	struct zevio_timer *timer = container_of(dev,
-			struct zevio_timer,
-			clkevt);
-
-	local_irq_save(flags);
+	struct zevio_timer *timer = container_of(dev, struct zevio_timer,
+						 clkevt);
 
 	switch (mode) {
 	case CLOCK_EVT_MODE_RESUME:
@@ -100,7 +88,6 @@ static void zevio_timer_set_mode(enum clock_event_mode mode,
 		/* Enable timer interrupts */
 		writel(TIMER_INTR_MSK, timer->interrupt_regs + IO_INTR_MSK);
 		writel(TIMER_INTR_ALL, timer->interrupt_regs + IO_INTR_ACK);
-		dev->mode = mode;
 		break;
 	case CLOCK_EVT_MODE_SHUTDOWN:
 	case CLOCK_EVT_MODE_UNUSED:
@@ -109,15 +96,12 @@ static void zevio_timer_set_mode(enum clock_event_mode mode,
 		writel(TIMER_INTR_ALL, timer->interrupt_regs + IO_INTR_ACK);
 		/* Stop timer */
 		writel(CNTL_STOP_TIMER, timer->timer1 + IO_CONTROL);
-		dev->mode = mode;
 		break;
 	case CLOCK_EVT_MODE_PERIODIC:
 	default:
 		/* Unsupported */
 		break;
 	}
-
-	local_irq_restore(flags);
 }
 
 static irqreturn_t zevio_timer_interrupt(int irq, void *dev_id)
@@ -142,9 +126,9 @@ static int __init zevio_timer_add(struct device_node *node)
 {
 	struct zevio_timer *timer;
 	struct resource res;
-	int ret;
+	int irqnr, ret;
 
-	timer = kzalloc(sizeof(*timer), GFP_ATOMIC);
+	timer = kzalloc(sizeof(*timer), GFP_KERNEL);
 	if (!timer)
 		return -ENOMEM;
 
@@ -164,7 +148,7 @@ static int __init zevio_timer_add(struct device_node *node)
 	}
 
 	timer->interrupt_regs = of_iomap(node, 1);
-	timer->irqnr = irq_of_parse_and_map(node, 0);
+	irqnr = irq_of_parse_and_map(node, 0);
 
 	of_address_to_resource(node, 0, &res);
 	scnprintf(timer->clocksource_name, sizeof(timer->clocksource_name),
@@ -175,14 +159,14 @@ static int __init zevio_timer_add(struct device_node *node)
 			"%llx.%s_clockevent",
 			(unsigned long long)res.start, node->name);
 
-	if (timer->interrupt_regs && timer->irqnr) {
-		timer->clkevt.name	= timer->clockevent_name;
-		timer->clkevt.set_next_event = zevio_timer_set_event;
-		timer->clkevt.set_mode	= zevio_timer_set_mode;
-		timer->clkevt.rating	= 200;
-		timer->clkevt.cpumask	= cpu_all_mask;
-		timer->clkevt.features	=
-			CLOCK_EVT_FEAT_ONESHOT;
+	if (timer->interrupt_regs && irqnr) {
+		timer->clkevt.name		= timer->clockevent_name;
+		timer->clkevt.set_next_event	= zevio_timer_set_event;
+		timer->clkevt.set_mode		= zevio_timer_set_mode;
+		timer->clkevt.rating		= 200;
+		timer->clkevt.cpumask		= cpu_all_mask;
+		timer->clkevt.features		= CLOCK_EVT_FEAT_ONESHOT;
+		timer->clkevt.irq		= irqnr;
 
 		writel(CNTL_STOP_TIMER, timer->timer1 + IO_CONTROL);
 		writel(0, timer->timer1 + IO_DIVIDER);
@@ -194,13 +178,12 @@ static int __init zevio_timer_add(struct device_node *node)
 		/* Interrupt to occur when timer value matches 0 */
 		writel(0, timer->base + IO_MATCH(TIMER_MATCH));
 
-		timer->clkevt_irq.name	= timer->clockevent_name;
-		timer->clkevt_irq.handler = zevio_timer_interrupt;
-		timer->clkevt_irq.dev_id = timer;
-		timer->clkevt_irq.flags	=
-			IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL;
+		timer->clkevt_irq.name		= timer->clockevent_name;
+		timer->clkevt_irq.handler	= zevio_timer_interrupt;
+		timer->clkevt_irq.dev_id	= timer;
+		timer->clkevt_irq.flags		= IRQF_TIMER | IRQF_IRQPOLL;
 
-		setup_irq(timer->irqnr, &timer->clkevt_irq);
+		setup_irq(irqnr, &timer->clkevt_irq);
 
 		clockevents_config_and_register(&timer->clkevt,
 				clk_get_rate(timer->clk), 0x0001, 0xffff);
