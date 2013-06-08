@@ -122,7 +122,7 @@ static irqreturn_t zevio_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static int __init zevio_timer_add(struct device_node *node)
+static void __init zevio_timer_add(struct device_node *node)
 {
 	struct zevio_timer *timer;
 	struct resource res;
@@ -130,7 +130,7 @@ static int __init zevio_timer_add(struct device_node *node)
 
 	timer = kzalloc(sizeof(*timer), GFP_KERNEL);
 	if (!timer)
-		return -ENOMEM;
+		return;
 
 	timer->base = of_iomap(node, 0);
 	if (!timer->base) {
@@ -204,12 +204,12 @@ static int __init zevio_timer_add(struct device_node *node)
 
 	pr_info("Added %s as clocksource\n", timer->clocksource_name);
 
-	return 0;
+	return;
+
 error_unmap:
 	iounmap(timer->base);
 error_free:
 	kfree(timer);
-	return ret;
 }
 
 CLOCKSOURCE_OF_DECLARE(zevio_timer, "lsi,zevio-timer", zevio_timer_add);
